@@ -10,6 +10,7 @@ import textract
 # Takes a card from CMU's menu and extracts the information from it
 # Based on the html structure of the cards
 class Restaurant(object):
+    # Creating the properties of the restaurant
     def __init__(self, card):
         self.card = card
         self.name = self.card.find("h3", class_="name detailsLink").text.strip().title()
