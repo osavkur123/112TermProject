@@ -41,7 +41,7 @@ def main():
     print(restaurants)
 
     # Converting Address into a latitude and longitude
-    geolocator = geopy.geocoders.Nominatim(user_agent="trial")
+    geolocator = geopy.geocoders.Nominatim(user_agent="testing")
     location = geolocator.geocode("5000 Forbes Avenue PA")
     print(location.latitude, location.longitude)
 
