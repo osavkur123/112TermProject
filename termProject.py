@@ -42,11 +42,18 @@ class Restaurant(object):
             row += 1
             col -= self.app.cols
         x0 = (self.app.margin + self.app.cellWidth) * col + self.app.margin
-        y0 = (self.app.margin + self.app.cellHeight) * row + self.app.margin - self.app.scrollY
+        y0 = (self.app.margin + self.app.cellHeight) * row + self.app.margin * 3\
+            - self.app.scrollY + self.app.topHeight
         x1 = x0 + self.app.cellWidth
         y1 = y0 + self.app.cellHeight
         canvas.create_rectangle(x0, y0, x1, y1)
-        canvas.create_text((x0+x1)/2, (y0+y1)/2, text=self.name)
+        if len(self.name) > 24:
+            words = self.name.split(" ")
+            mid = len(words) // 2
+            canvas.create_text((x0+x1)/2, (y0+y1)/2-7, text=" ".join(words[:mid]))
+            canvas.create_text((x0+x1)/2, (y0+y1)/2+7, text=" ".join(words[mid:]))
+        else:
+            canvas.create_text((x0+x1)/2, (y0+y1)/2, text=self.name)
 
 # class that controls the user inteface
 # TODO: Implement searching feature
@@ -60,34 +67,78 @@ class UserInterface(App):
         # Parse the website and create objects for each restaruraunt
         parser = BeautifulSoup(source,'html.parser')
         self.restaurants = [Restaurant(card, self) for card in parser.find_all("div", class_="card")]
+        self.scrollY = 0
+        self.backgroundColor = "white"
         self.getDimensions()
     
     def getDimensions(self):
-        self.scrollY = 0
-        self.cols = 3
-        self.rows = math.ceil(len(self.restaurants) / self.cols)
         self.margin = 10
+        self.topHeight = 50
+        self.searchBarWidth = (self.width - self.margin * 3) * 3 / 4
+        self.loginWidth = (self.width - self.margin * 3) / 4
+        self.maxColWidth = 200
+        self.cols = max(1, self.width // self.maxColWidth)
+        self.rows = math.ceil(len(self.restaurants) / self.cols)
         self.cellWidth = (self.width - self.margin * (self.cols + 1)) // self.cols
         self.cellHeight = self.cellWidth
-        self.maxY = self.rows * (self.cellHeight + self.margin) + self.margin - self.height
+        self.maxScrollY = self.rows * (self.cellHeight + self.margin) + self.margin * 3 + self.topHeight - self.height
+        if self.scrollY < 0:
+            self.scrollY = 0
+        elif self.scrollY > self.maxScrollY:
+            self.scrollY = self.maxScrollY
 
     def keyPressed(self, event):
         if event.key == "Up":
             self.scrollY = max(0, self.scrollY - 10)
         elif event.key == "Down":
-            self.scrollY = min(self.maxY, self.scrollY + 10)
+            self.scrollY = min(self.maxScrollY, self.scrollY + 10)
     
+    def mousePressed(self, event):
+        if 0 <= event.x - self.margin <= self.searchBarWidth and\
+            0 <= event.y - self.margin <= self.topHeight:
+            self.query = self.getUserInput("What do you want to eat?")
+            if self.query is not None:
+                pass
+        elif 0 <= event.y - self.margin <= self.topHeight and\
+            self.margin * 2 + self.searchBarWidth <= event.x <= self.width - self.margin:
+            self.login = self.getUserInput("What is your username?")
+            if self.login is not None:
+                pass      
+
     def sizeChanged(self):
         self.getDimensions()
     
+    def drawSearchAndLogin(self, canvas):
+        # Clear what's under the header
+        canvas.create_rectangle(0, 0, self.width, self.topHeight + self.margin * 2, fill="black")
+
+        # Draw Search bar
+        canvas.create_rectangle(self.margin, self.margin,\
+            self.margin + self.searchBarWidth,\
+            self.margin + self.topHeight, fill=self.backgroundColor)
+        canvas.create_text(self.margin + self.searchBarWidth / 2,\
+            self.margin + self.topHeight / 2, text="Search")
+        
+        # Draw the login button
+        canvas.create_rectangle(self.width - self.margin - self.loginWidth,\
+            self.margin, self.width - self.margin,\
+            self.margin + self.topHeight, fill=self.backgroundColor)
+        canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
+            self.margin + self.topHeight / 2, text="Login")
+
     def redrawAll(self, canvas):
+        canvas.create_rectangle(0, 0, self.width, self.height, fill=self.backgroundColor)
+
         # Draw each restaurant card
         for i in range(len(self.restaurants)):
             restaurant = self.restaurants[i]
             restaurant.draw(canvas, i)
+        
+        # Draw the header
+        self.drawSearchAndLogin(canvas)
 
 def main():
-    UserInterface(width=800, height=800)
+    UserInterface(width=600, height=600)
 
 if __name__ == "__main__":
     main()
