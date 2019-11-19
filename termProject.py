@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 import geopy
 import textract
 import math
+import userData
 
 # Takes a card from CMU's menu and extracts the information from it
 # Based on the html structure of the cards
@@ -35,6 +36,7 @@ class Restaurant(object):
     def process(self, L):
         return [x for x in L if x!='\n' and x!="\t" and x!='\r']
     
+    # Draws the 
     def draw(self, canvas, number):
         row = 0
         col = number
@@ -47,6 +49,7 @@ class Restaurant(object):
         x1 = x0 + self.app.cellWidth
         y1 = y0 + self.app.cellHeight
         canvas.create_rectangle(x0, y0, x1, y1)
+        # Displaying the name as two lines if it's too long
         if len(self.name) > 24:
             words = self.name.split(" ")
             mid = len(words) // 2
@@ -70,6 +73,7 @@ class UserInterface(App):
         self.scrollY = 0
         self.backgroundColor = "white"
         self.getDimensions()
+        self.user = None
     
     def getDimensions(self):
         self.margin = 10
@@ -101,9 +105,11 @@ class UserInterface(App):
                 pass
         elif 0 <= event.y - self.margin <= self.topHeight and\
             self.margin * 2 + self.searchBarWidth <= event.x <= self.width - self.margin:
-            self.login = self.getUserInput("What is your username?")
-            if self.login is not None:
-                pass      
+            if self.user is None:
+                login = self.getUserInput("What is your username?")
+                self.user = userData.login(login)
+            else:
+                self.user = userData.logout()
 
     def sizeChanged(self):
         self.getDimensions()
@@ -123,8 +129,12 @@ class UserInterface(App):
         canvas.create_rectangle(self.width - self.margin - self.loginWidth,\
             self.margin, self.width - self.margin,\
             self.margin + self.topHeight, fill=self.backgroundColor)
+        if self.user is None:
+            status = "Login"
+        else:
+            status = "Logout " + self.user.username
         canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
-            self.margin + self.topHeight / 2, text="Login")
+            self.margin + self.topHeight / 2, text=status)
 
     def redrawAll(self, canvas):
         canvas.create_rectangle(0, 0, self.width, self.height, fill=self.backgroundColor)
@@ -137,8 +147,5 @@ class UserInterface(App):
         # Draw the header
         self.drawSearchAndLogin(canvas)
 
-def main():
-    UserInterface(width=600, height=600)
-
 if __name__ == "__main__":
-    main()
+    UserInterface(width=600, height=600)
