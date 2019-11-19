@@ -10,6 +10,7 @@ class User(object):
 def login(username):
     if username is None or username == "":
         return None
+    
     return User(username, {})
 
 def logout():
