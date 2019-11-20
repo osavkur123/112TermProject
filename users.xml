@@ -1,4 +1,13 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" encoding = "UTF-8"?>
 <users>
-    <user id="testUser"></user>
+    <user username = "testUser">
+        <review restaurant = "THE UNDERGROUND">
+            <rating>6</rating>
+            <comment>Not bad</comment>
+        </review>
+        <review restaurant = "BOWL LIFE">
+            <rating>9</rating>
+            <comment>Pretty Good</comment>
+        </review>
+    </user>
 </users>
