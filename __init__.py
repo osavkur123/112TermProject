@@ -24,17 +24,40 @@ class RestaurantScreen(Mode):
         super().__init__()
         self.restaurant = restaurant
         self.mainApp = mainApp
+        self.rating = ""
+        self.comment = ""
     
     def appStarted(self):
         self.getDimensions()
 
     def getDimensions(self):
-        self.exitButton = (self.width * 7 / 8, self.mainApp.margin, self.width - self.mainApp.margin, self.app.height/20 + self.mainApp.margin)
+        self.exitButton = (self.width * 7 / 8, self.mainApp.margin,\
+            self.width - self.mainApp.margin,\
+            self.app.height/20 + self.mainApp.margin)
+        self.ratingButton = (self.mainApp.margin, self.height * 5 / 6,\
+            (self.width - self.mainApp.margin) / 2,\
+            self.height - self.mainApp.margin)
+        self.commentButton = ((self.width + self.mainApp.margin) / 2,\
+            self.height * 5 / 6, self.width - self.mainApp.margin,\
+            self.height - self.mainApp.margin)
 
     def mousePressed(self, event):
         if self.exitButton[0] <= event.x <= self.exitButton[2] and\
             self.exitButton[1] <= event.y <= self.exitButton[3]:
             self.app.setActiveMode(self.app.mainScreen)
+        
+        if self.mainApp.user is not None:
+            if self.ratingButton[0] <= event.x <= self.ratingButton[2] and\
+                self.ratingButton[1] <= event.y <= self.ratingButton[3]:
+                self.rating = self.getUserInput(f"HOW DO YOU RATE {self.restaurant.name}?")
+
+            elif self.commentButton[0] <= event.x <= self.commentButton[2] and\
+                self.commentButton[1] <= event.y <= self.commentButton[3]:
+                self.comment = self.getUserInput(f"WHAT DO YOU THINK ABOUT {self.restaurant.name}?")
+            
+            if self.rating != "" and self.rating.isdigit() and self.comment == "":
+                self.mainApp.user.reviews[self.restaurant.name] = {"rating": self.rating, "comment": self.comment}
+                self.mainApp.user.updateFile()
     
     def sizeChanged(self):
         self.getDimensions()
@@ -46,6 +69,18 @@ class RestaurantScreen(Mode):
         canvas.create_text(self.width/2, self.app.height/2, text=self.restaurant.description)
         if self.mainApp.user is not None:
             canvas.create_text(self.width/2, self.app.height/10, text="Welcome " + self.mainApp.user.username)
+            canvas.create_rectangle(*self.ratingButton)
+            if self.rating == "":
+                canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2, (self.ratingButton[1]+self.ratingButton[3])/2, text="RATE")
+            elif not self.rating.isdigit():
+                canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2, (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER")
+            else:
+                canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2, (self.ratingButton[1]+self.ratingButton[3])/2, text=f"RATING: {self.rating}")
+            canvas.create_rectangle(*self.commentButton)
+            if self.comment == "":
+                canvas.create_text((self.commentButton[0]+self.commentButton[2])/2, (self.commentButton[1]+self.commentButton[3])/2, text="COMMENT")
+            else:
+                canvas.create_text((self.commentButton[0]+self.commentButton[2])/2, (self.commentButton[1]+self.commentButton[3])/2, text=f"COMMENT: {self.comment}")
 
 # class that displays the main screen
 # TODO: Implement searching feature
@@ -102,8 +137,11 @@ class HomeScreen(Mode):
         elif 0 <= event.y - self.margin <= self.topHeight and\
             self.margin * 2 + self.searchBarWidth <= event.x <= self.width - self.margin:
             if self.user is None:
-                login = self.getUserInput("What is your username?")
-                self.user = userData.login(login)
+                # testUser user password is "hello"
+                # other user password is "potatoes"
+                username = self.getUserInput("What is your username?")
+                password = self.getUserInput("What is your password?")
+                self.user = userData.login(username, password)
             else:
                 self.user = self.user.logout()
         else:
