@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding = "UTF-8"?>
 <users>
-    <user username = "testUser">
-        <review restaurant = "THE UNDERGROUND">
-            <rating>6</rating>
-            <comment>Not bad</comment>
-        </review>
-        <review restaurant = "BOWL LIFE">
-            <rating>9</rating>
-            <comment>Pretty Good</comment>
-        </review>
-    </user>
+<user username="other">
+	<review restaurant="THE UNDERGROUND">
+		<rating>6</rating>
+		<comment>Good</comment>
+	</review>
+	<review restaurant="iNOODLE">
+		<rating>5</rating>
+		<comment>No Comment</comment>
+	</review>
+</user>
+<user username="testUser">
+	<review restaurant="THE UNDERGROUND">
+		<rating>10</rating>
+		<comment>Great!!!!!!!!</comment>
+	</review>
+	<review restaurant="BOWL LIFE">
+		<rating>9</rating>
+		<comment>Pretty Good</comment>
+	</review>
+</user>
 </users>

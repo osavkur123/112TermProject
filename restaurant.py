@@ -13,6 +13,7 @@ class Restaurant(object):
         self.mapLink = self.process(list(hoursLoc[0].children))[1]["href"]
         self.latitude = float(self.mapLink[self.mapLink.find("place/") + len("place/"):self.mapLink.find(",")])
         self.longitude = float(self.mapLink[self.mapLink.find(",") + len(","):self.mapLink.find("/", self.mapLink.find(","))])
+        self.x0, self.y0, self.x1, self.y1 = 0, 0, 0, 0
         # TODO: Get menu and sepecials
 
     # Representing the objects as strings
@@ -23,8 +24,7 @@ class Restaurant(object):
     def process(self, L):
         return [x for x in L if x!='\n' and x!="\t" and x!='\r']
     
-    # Draws a rectangle for the restaurant
-    def draw(self, canvas, number):
+    def calculateCoordinates(self, number):
         # Finding the row/col
         row = 0
         col = number
@@ -33,18 +33,22 @@ class Restaurant(object):
             col -= self.app.cols
         
         # Calculating the bounds of the cell
-        x0 = (self.app.margin + self.app.cellWidth) * col + self.app.margin
-        y0 = (self.app.margin + self.app.cellHeight) * row + self.app.margin * 3\
+        self.x0 = (self.app.margin + self.app.cellWidth) * col + self.app.margin
+        self.y0 = (self.app.margin + self.app.cellHeight) * row + self.app.margin * 3\
             - self.app.scrollY + self.app.topHeight
-        x1 = x0 + self.app.cellWidth
-        y1 = y0 + self.app.cellHeight
-        canvas.create_rectangle(x0, y0, x1, y1)
+        self.x1 = self.x0 + self.app.cellWidth
+        self.y1 = self.y0 + self.app.cellHeight
+
+    # Draws a rectangle for the restaurant
+    def draw(self, canvas, number):
+        self.calculateCoordinates(number)
+        canvas.create_rectangle(self.x0, self.y0, self.x1, self.y1)
 
         # Displaying the name as two lines if it's too long
         if len(self.name) > 24:
             words = self.name.split(" ")
             mid = len(words) // 2
-            canvas.create_text((x0+x1)/2, (y0+y1)/2-7, text=" ".join(words[:mid]))
-            canvas.create_text((x0+x1)/2, (y0+y1)/2+7, text=" ".join(words[mid:]))
+            canvas.create_text((self.x0+self.x1)/2, (self.y0+self.y1)/2-7, text=" ".join(words[:mid]))
+            canvas.create_text((self.x0+self.x1)/2, (self.y0+self.y1)/2+7, text=" ".join(words[mid:]))
         else:
-            canvas.create_text((x0+x1)/2, (y0+y1)/2, text=self.name)
+            canvas.create_text((self.x0+self.x1)/2, (self.y0+self.y1)/2, text=self.name)

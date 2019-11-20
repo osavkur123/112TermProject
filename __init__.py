@@ -19,9 +19,36 @@ class UserInterface(ModalApp):
         self.mainScreen = HomeScreen()
         self.setActiveMode(self.mainScreen)
 
+class RestaurantScreen(Mode):
+    def __init__(self, mainApp, restaurant):
+        super().__init__()
+        self.restaurant = restaurant
+        self.mainApp = mainApp
+    
+    def appStarted(self):
+        self.getDimensions()
+
+    def getDimensions(self):
+        self.exitButton = (self.width * 7 / 8, self.mainApp.margin, self.width - self.mainApp.margin, self.app.height/20 + self.mainApp.margin)
+
+    def mousePressed(self, event):
+        if self.exitButton[0] <= event.x <= self.exitButton[2] and\
+            self.exitButton[1] <= event.y <= self.exitButton[3]:
+            self.app.setActiveMode(self.app.mainScreen)
+    
+    def sizeChanged(self):
+        self.getDimensions()
+
+    def redrawAll(self, canvas):
+        canvas.create_rectangle(*self.exitButton)
+        canvas.create_text((self.exitButton[0]+self.exitButton[2])/2, (self.exitButton[1]+self.exitButton[3])/2, text="EXIT")
+        canvas.create_text(self.width/2, self.app.height/4, text=self.restaurant.name)
+        canvas.create_text(self.width/2, self.app.height/2, text=self.restaurant.description)
+        if self.mainApp.user is not None:
+            canvas.create_text(self.width/2, self.app.height/10, text="Welcome " + self.mainApp.user.username)
+
 # class that displays the main screen
 # TODO: Implement searching feature
-# TODO: Implement login and user feature
 class HomeScreen(Mode):
     def appStarted(self):
         # Get the webpage with the info of all of the restaurant
@@ -48,7 +75,7 @@ class HomeScreen(Mode):
         self.rows = math.ceil(len(self.restaurants) / self.cols)
         self.cellWidth = (self.width - self.margin * (self.cols + 1)) // self.cols
         self.cellHeight = self.cellWidth
-        self.maxScrollY = self.rows * (self.cellHeight + self.margin) + self.margin * 3 + self.topHeight - self.height
+        self.maxScrollY = self.rows * (self.cellHeight + self.margin) + self.margin * 3 + self.topHeight - self.app.height
         if self.scrollY < 0:
             self.scrollY = 0
         elif self.scrollY > self.maxScrollY:
@@ -59,6 +86,12 @@ class HomeScreen(Mode):
             self.scrollY = max(0, self.scrollY - 10)
         elif event.key == "Down":
             self.scrollY = min(self.maxScrollY, self.scrollY + 10)
+    
+    def timerFired(self):
+        if (self.cellWidth + self.margin) * self.cols + self.margin != self.width or\
+            (self.cellHeight + self.margin) * self.rows + self.margin + self.topHeight != self.height + self.maxScrollY:
+            self.getDimensions()
+
     
     def mousePressed(self, event):
         if 0 <= event.x - self.margin <= self.searchBarWidth and\
@@ -72,7 +105,13 @@ class HomeScreen(Mode):
                 login = self.getUserInput("What is your username?")
                 self.user = userData.login(login)
             else:
-                self.user = userData.logout()
+                self.user = self.user.logout()
+        else:
+            for restaurant in self.restaurants:
+                if restaurant.x0 <= event.x <= restaurant.x1 and\
+                    restaurant.y0 <= event.y <= restaurant.y1:
+                    self.app.setActiveMode(RestaurantScreen(self, restaurant))
+                    break
 
     def sizeChanged(self):
         self.getDimensions()
@@ -104,7 +143,7 @@ class HomeScreen(Mode):
             self.margin + self.topHeight / 2, text=status)
 
     def redrawAll(self, canvas):
-        canvas.create_rectangle(0, 0, self.width, self.height, fill=self.backgroundColor)
+        canvas.create_rectangle(0, 0, self.width, self.app.height, fill=self.backgroundColor)
 
         # Draw each restaurant card
         for i in range(len(self.restaurants)):
