@@ -1,26 +1,6 @@
 <?xml version="1.0" encoding = "UTF-8"?>
 <users>
-<user username="newUser" password="pass">
-	<review restaurant="GINGERS EXPRESS (PURNELL)">
-		<rating>7</rating>
-		<comment>Drive</comment>
-	</review>
-</user>
-<user username="other" password="potatoes">
-	<review restaurant="THE UNDERGROUND">
-		<rating>5</rating>
-		<comment>No Comment</comment>
-	</review>
-	<review restaurant="iNOODLE">
-		<rating>5</rating>
-		<comment>No Comment</comment>
-	</review>
-	<review restaurant="THE EXCHANGE">
-		<rating>9</rating>
-		<comment>Fairly good</comment>
-	</review>
-</user>
-<user username="testUser" password="hello">
+<user username="testUser" password="43742204479">
 	<review restaurant="THE UNDERGROUND">
 		<rating>10</rating>
 		<comment>Great!!!!!!!!</comment>
@@ -32,6 +12,26 @@
 	<review restaurant="CHICKLE">
 		<rating>8</rating>
 		<comment>Okay</comment>
+	</review>
+</user>
+<user username="newUser" password="85346982040">
+	<review restaurant="GINGERS EXPRESS (PURNELL)">
+		<rating>7</rating>
+		<comment>Drive</comment>
+	</review>
+</user>
+<user username="other" password="83473832557">
+	<review restaurant="THE UNDERGROUND">
+		<rating>5</rating>
+		<comment>No Comment</comment>
+	</review>
+	<review restaurant="iNOODLE">
+		<rating>5</rating>
+		<comment>No Comment</comment>
+	</review>
+	<review restaurant="THE EXCHANGE">
+		<rating>9</rating>
+		<comment>Fairly good</comment>
 	</review>
 </user>
 </users>

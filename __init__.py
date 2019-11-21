@@ -124,7 +124,7 @@ class UserCreationScreen(Mode):
                 data = BeautifulSoup(database, "xml")
                 usernames = [user["username"] for user in data.find_all("user")]
             if self.username not in usernames and self.pass1 == self.pass2 and self.pass1 != "":
-                newUser = userData.User(self.username, self.pass1, dict())
+                newUser = userData.User(self.username, userData.passwordHash(self.pass1), dict())
                 newUser.updateFile()
                 self.app.setActiveMode(self.app.mainScreen)
 
@@ -206,7 +206,7 @@ class HomeScreen(Mode):
                     # testUser user password is "hello"
                     # other user password is "potatoes"
                     username = self.getUserInput("What is your username?")
-                    password = self.getUserInput("What is your password?")
+                    password = userData.passwordHash(self.getUserInput("What is your password?"))
                     self.user = userData.login(username, password)
                 elif self.margin + self.topHeight / 2 + self.margin / 4 <= event.y <= self.margin + self.topHeight:
                     self.app.setActiveMode(self.app.newUserScreen)

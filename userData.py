@@ -57,8 +57,6 @@ def createReviewsDictionary(revs):
         reviews[restaurant] = {"rating": int(review.rating.contents[0]), "comment": review.comment.contents[0]}
     return reviews
 
-# TODO: Create a button for Create a new account
-# TODO: Hash passwords to store in the xml file
 def login(username, password):
     if username is None or username == "":
         return None
@@ -66,13 +64,37 @@ def login(username, password):
         data = BeautifulSoup(database, "xml")
         user = data.find("user", username=username)
         # Username does not exist in database or password or username are wrong
-        if user is None or user["password"] != password:
+        if user is None or int(user["password"]) != password:
             return None
         revs = user.find_all("review")
         reviews = createReviewsDictionary(revs)
         return User(username, password, reviews)
 
+# Hashes passwords - can't use python's builtin hash function 
+# because the salt for that changes each the program runs
+# CITATION: modified from Daniel J. Bernstein's hash funcion
+def passwordHash(password):
+    hashVal = 11087
+    multiplier = 151
+    largePrime = 123456794327
+    for i in range(len(password)):
+        hashVal = (hashVal * multiplier + i + ord(password[i])) % largePrime
+    return hashVal
+
 if __name__ == "__main__":
-    user = login("other", "potatoes")
-    user.reviews["THE UNDERGROUND"] = {"rating": 5, "comment": "No Comment"}
-    user.logout()
+    # Testing the Hash Algorithm
+    import string
+    hashes = {}
+    l = string.ascii_letters
+    for a in l:
+        for b in l:
+            for c in l:
+                s = a+b+c
+                x = passwordHash(s)
+                if x in hashes:
+                    print("Collision", s, hashes[x])
+                else:
+                    hashes[x] = s
+    print("DONE")
+
+    
