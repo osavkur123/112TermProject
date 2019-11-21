@@ -74,5 +74,5 @@ def login(username, password):
 
 if __name__ == "__main__":
     user = login("other", "potatoes")
-    user.reviews["TED"] = {"rating": 5, "comment": "No Comment"}
+    user.reviews["THE UNDERGROUND"] = {"rating": 5, "comment": "No Comment"}
     user.logout()

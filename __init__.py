@@ -17,6 +17,7 @@ import userData
 class UserInterface(ModalApp):
     def appStarted(self):
         self.mainScreen = HomeScreen()
+        self.newUserScreen = UserCreationScreen()
         self.setActiveMode(self.mainScreen)
 
 class RestaurantScreen(Mode):
@@ -55,7 +56,7 @@ class RestaurantScreen(Mode):
                 self.commentButton[1] <= event.y <= self.commentButton[3]:
                 self.comment = self.getUserInput(f"WHAT DO YOU THINK ABOUT {self.restaurant.name}?")
             
-            if self.rating != "" and self.rating.isdigit() and self.comment == "":
+            if self.rating != "" and self.rating.isdigit() and self.comment != "":
                 self.mainApp.user.reviews[self.restaurant.name] = {"rating": self.rating, "comment": self.comment}
                 self.mainApp.user.updateFile()
     
@@ -81,6 +82,70 @@ class RestaurantScreen(Mode):
                 canvas.create_text((self.commentButton[0]+self.commentButton[2])/2, (self.commentButton[1]+self.commentButton[3])/2, text="COMMENT")
             else:
                 canvas.create_text((self.commentButton[0]+self.commentButton[2])/2, (self.commentButton[1]+self.commentButton[3])/2, text=f"COMMENT: {self.comment}")
+
+# Animation that handles the user creating a profile
+class UserCreationScreen(Mode):
+    def appStarted(self):
+        self.getDimensions()
+        self.username = ""
+        self.pass1 = ""
+        self.pass2 = ""
+    
+    def getDimensions(self):
+        self.margin = 10
+        self.cellHeight = 50
+        self.usernameBox = (self.margin, self.height / 6,\
+            self.width - self.margin, self.height / 6 + self.cellHeight)
+        self.pass1Box = (self.margin, self.height / 3,\
+            self.width - self.margin, self.height / 3 + self.cellHeight)
+        self.pass2Box = (self.margin, self.height / 2,\
+            self.width - self.margin, self.height / 2 + self.cellHeight)
+        self.cancelBox = (self.margin, self.height * 2 / 3,\
+            (self.width - self.margin) / 2, self.height * 2 / 3 + self.cellHeight)
+        self.submitBox = ((self.width + self.margin) / 2, self.height * 2 / 3,\
+            self.width - self.margin, self.height * 2 / 3 + self.cellHeight)
+
+    @staticmethod
+    def clickWithinBox(event, box):
+        return box[0] <= event.x <= box[2] and box[1] <= event.y <= box[3]
+
+    def mousePressed(self, event):
+        if UserCreationScreen.clickWithinBox(event, self.usernameBox):
+            self.username = self.getUserInput("Enter username")
+        elif UserCreationScreen.clickWithinBox(event, self.pass1Box):
+            self.pass1 = self.getUserInput("Enter password")
+        elif UserCreationScreen.clickWithinBox(event, self.pass2Box):
+            self.pass2 = self.getUserInput("Confirm password")
+        elif UserCreationScreen.clickWithinBox(event, self.cancelBox):
+            self.app.setActiveMode(self.app.mainScreen)
+        elif UserCreationScreen.clickWithinBox(event, self.submitBox):
+            usernames = []
+            with open("users.xml", "r") as database:
+                data = BeautifulSoup(database, "xml")
+                usernames = [user["username"] for user in data.find_all("user")]
+            if self.username not in usernames and self.pass1 == self.pass2 and self.pass1 != "":
+                newUser = userData.User(self.username, self.pass1, dict())
+                newUser.updateFile()
+                self.app.setActiveMode(self.app.mainScreen)
+
+    def sizeChanged(self):
+        self.getDimensions()
+
+    @staticmethod
+    def drawTextWithinBox(text, box, canvas):
+        canvas.create_text((box[0]+box[2])/2, (box[1]+box[3])/2, text=text)
+
+    def redrawAll(self, canvas):
+        canvas.create_rectangle(*self.usernameBox)
+        UserCreationScreen.drawTextWithinBox("Enter Username", self.usernameBox, canvas)
+        canvas.create_rectangle(*self.pass1Box)
+        UserCreationScreen.drawTextWithinBox("Enter Password", self.pass1Box, canvas)
+        canvas.create_rectangle(*self.pass2Box)
+        UserCreationScreen.drawTextWithinBox("Confirm Password", self.pass2Box, canvas)
+        canvas.create_rectangle(*self.cancelBox)
+        UserCreationScreen.drawTextWithinBox("Cancel", self.cancelBox, canvas)
+        canvas.create_rectangle(*self.submitBox)
+        UserCreationScreen.drawTextWithinBox("Submit", self.submitBox, canvas)
 
 # class that displays the main screen
 # TODO: Implement searching feature
@@ -137,11 +202,14 @@ class HomeScreen(Mode):
         elif 0 <= event.y - self.margin <= self.topHeight and\
             self.margin * 2 + self.searchBarWidth <= event.x <= self.width - self.margin:
             if self.user is None:
-                # testUser user password is "hello"
-                # other user password is "potatoes"
-                username = self.getUserInput("What is your username?")
-                password = self.getUserInput("What is your password?")
-                self.user = userData.login(username, password)
+                if self.margin <= event.y <= self.margin + self.topHeight / 2 - self.margin/4: 
+                    # testUser user password is "hello"
+                    # other user password is "potatoes"
+                    username = self.getUserInput("What is your username?")
+                    password = self.getUserInput("What is your password?")
+                    self.user = userData.login(username, password)
+                elif self.margin + self.topHeight / 2 + self.margin / 4 <= event.y <= self.margin + self.topHeight:
+                    self.app.setActiveMode(self.app.newUserScreen)
             else:
                 self.user = self.user.logout()
         else:
@@ -169,16 +237,24 @@ class HomeScreen(Mode):
             canvas.create_text(self.margin + self.searchBarWidth / 2,\
                 self.margin + self.topHeight / 2, text=self.query)
         
-        # Draw the login button
-        canvas.create_rectangle(self.width - self.margin - self.loginWidth,\
-            self.margin, self.width - self.margin,\
-            self.margin + self.topHeight, fill=self.backgroundColor)
-        if self.user is None:
-            status = "Login"
+        # Draw the login and registration button
+        if self.user is None:       
+            canvas.create_rectangle(self.width - self.margin - self.loginWidth,\
+                self.margin, self.width - self.margin,\
+                self.margin + self.topHeight / 2 - self.margin/4, fill=self.backgroundColor)
+            canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
+                self.margin + self.topHeight / 4 - self.margin / 8, text="Login")
+            canvas.create_rectangle(self.width - self.margin - self.loginWidth,\
+                self.margin + self.topHeight / 2 + self.margin/4, self.width - self.margin,\
+                self.margin + self.topHeight, fill=self.backgroundColor)
+            canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
+                self.margin + self.topHeight * 3 / 4 + self.margin / 8, text="Sign Up")
         else:
-            status = "Logout " + self.user.username
-        canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
-            self.margin + self.topHeight / 2, text=status)
+            canvas.create_rectangle(self.width - self.margin - self.loginWidth,\
+                self.margin, self.width - self.margin,\
+                self.margin + self.topHeight, fill=self.backgroundColor)
+            canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
+                self.margin + self.topHeight / 2, text="Logout " + self.user.username)
 
     def redrawAll(self, canvas):
         canvas.create_rectangle(0, 0, self.width, self.app.height, fill=self.backgroundColor)
