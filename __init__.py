@@ -2,16 +2,12 @@
 # AndrewID: osavkur
 # 112 Term Project
 
+# CITATION - using the 15-112 graphics library to help with drawing to the canvas
 from cmu_112_graphics import *
 from tkinter import *
-import requests
-from bs4 import BeautifulSoup
-import geopy
-import textract
 import math
 import restaurant
 import userData
-
 
 # class that controls the user inteface
 class UserInterface(ModalApp):
@@ -151,13 +147,35 @@ class UserCreationScreen(Mode):
 # TODO: Implement searching feature
 class HomeScreen(Mode):
     def appStarted(self):
-        # Get the webpage with the info of all of the restaurant
+        # Get the webpage with the info of all of the CMU Restaurants
         url = "https://apps.studentaffairs.cmu.edu/dining/conceptinfo/?page=listConcepts"
-        website = requests.get(url)
-        source = website.text
-        # Parse the website and create objects for each restaurant
-        parser = BeautifulSoup(source,'html.parser')
-        self.restaurants = [restaurant.Restaurant(card, self) for card in parser.find_all("div", class_="card")]
+        parser = restaurant.Restaurant.loadParser(url)
+        cards = parser.find_all("div", class_="card")
+        # If bad request or something failed, load from cached file
+        if len(cards) == 0:
+            with open("cmuCache.html", "w") as f:
+                parser = BeautifulSoup(f, "html.parser")
+                cards = parser.find_all("div", class_="card")
+        else:
+            # Write to cached file results
+            with open("cmuCache.html", "w") as f:
+                f.write(parser.prettify())
+        self.restaurants = [restaurant.CMURestaurant(card, self) for card in cards]
+
+        # Get the webpage with of the info from 
+        url = "https://www.yelp.com/search?find_desc=Restaurants&find_loc=5000%20Forbes%20Ave%2C%20Pittsburgh%2C%20PA&l=g%3A-79.94270148285887%2C40.45110570038694%2C-79.95452895199287%2C40.44305530316755"
+        parser = restaurant.Restaurant.loadParser(url)
+        # Creating all the Yelp Restaurant objects
+        cards = parser.find_all("li", class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")
+        if len(cards) == 0:
+            with open("yelpCache.html", "rb") as f:
+                parser = restaurant.BeautifulSoup(f.read(), "html.parser")
+                cards = parser.find_all("li", class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")
+        for card in cards:
+            if card.find("h4") is not None:
+                rest = restaurant.YelpRestaurant(card, self)
+                if rest.useful:
+                    self.restaurants.append(rest)
         self.scrollY = 0
         self.backgroundColor = "white"
         self.getDimensions()

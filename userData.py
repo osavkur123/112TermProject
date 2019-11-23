@@ -70,9 +70,10 @@ def login(username, password):
         reviews = createReviewsDictionary(revs)
         return User(username, password, reviews)
 
-# Hashes passwords - can't use python's builtin hash function 
+# Function that hashes passwords - can't use python's builtin hash function 
 # because the salt for that changes each the program runs
 # CITATION: modified from Daniel J. Bernstein's hash funcion
+# Source: https://en.wikipedia.org/wiki/Universal_hashing#Hashing_strings
 def passwordHash(password):
     hashVal = 11087
     multiplier = 151
@@ -96,5 +97,3 @@ if __name__ == "__main__":
                 else:
                     hashes[x] = s
     print("DONE")
-
-    
