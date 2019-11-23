@@ -2,10 +2,15 @@
 # AndrewID: osavkur
 # 112 Term Project
 
+# userData.py - has helper functions and classes for the main file to use
+# Stores user information in users.xml and parses the file with Beautiful Soup
+
+# CITATION - using BeautifulSoup to parse webpages
+# From https://pypi.org/project/beautifulsoup4/
 from bs4 import BeautifulSoup
 
 # User object - has user name and dictionary of reviews mapping the
-# restaurants' names to the user's review and rating
+# restaurants' names a dictionary contataining the user's review and rating
 class User(object):
     def __init__(self, username, password, reviews):
         self.username = username
@@ -25,10 +30,9 @@ class User(object):
                 f'\t</review>\n')
         return first + middle + last
 
-    def updateFile(self):
-        header = '<?xml version="1.0" encoding = "UTF-8"?>\n<users>\n'
-        otherUsers = ""
-        footer = "</users>"
+    # Creates list of all the other users in file besides the current users
+    def getOtherUsers(self):
+        otherUsers = []
         # Reading all the existing data from the xml file
         with open("users.xml", "r") as database:
             data = BeautifulSoup(database, "xml")
@@ -36,10 +40,19 @@ class User(object):
             for user in users:
                 if user["username"] != self.username:
                     reviews = user.find_all("review")
-                    newUser = User(user["username"], user["password"], createReviewsDictionary(reviews))
-                    otherUsers += newUser.convertToXmlString()
+                    otherUsers.append(User(user["username"], user["password"], createReviewsDictionary(reviews)))
+        return otherUsers        
+
+    # Overwrites users.xml to save information beyond running the project once
+    def updateFile(self):
+        header = '<?xml version="1.0" encoding = "UTF-8"?>\n<users>\n'
+        otherUsers = self.getOtherUsers()
+        otherUsersStr = ""
+        footer = "</users>"
+        for user in otherUsers:
+            otherUsersStr += user.convertToXmlString()
         # Write updated user profile to users.xml
-        stringToWrite = header + self.convertToXmlString() + otherUsers + footer
+        stringToWrite = header + self.convertToXmlString() + otherUsersStr + footer
         database = open("users.xml", "w")
         database.write(stringToWrite)
 
@@ -57,6 +70,8 @@ def createReviewsDictionary(revs):
         reviews[restaurant] = {"rating": int(review.rating.contents[0]), "comment": review.comment.contents[0]}
     return reviews
 
+# login function - if the username and hashed password are in users.xml,
+# it creates a User object - otherwise, returns None
 def login(username, password):
     if username is None or username == "":
         return None
@@ -97,3 +112,7 @@ if __name__ == "__main__":
                 else:
                     hashes[x] = s
     print("DONE")
+    # testing updating the user.xml
+    user = login("other", 83473832557)
+    user.reviews["THE UNDERGROUND"]["rating"] = 7
+    user.updateFile()
