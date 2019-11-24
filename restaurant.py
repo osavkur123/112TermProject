@@ -40,7 +40,7 @@ class Restaurant(object):
         return f"{self.name}"
     
     def __hash__(self):
-        return passwordHash(self.name)
+        return hash(self.name)
 
     # Equating restaurants based on name
     def __eq__(self, other):

@@ -82,9 +82,10 @@ class RestaurantScreen(Mode):
                     f"WHAT DO YOU THINK ABOUT {self.restaurant.name}?")
             
             # Update the file if both are filled out
-            if self.rating != "" and self.rating.isdigit() and self.comment != "":
+            if self.rating != "" and self.rating is not None and\
+                self.rating.isdigit() and self.comment != "" and self.comment is not None:
                 self.mainApp.user.reviews[self.restaurant.name] = {
-                    "rating": self.rating, "comment": self.comment}
+                    "rating": int(self.rating), "comment": self.comment}
                 self.mainApp.user.updateFile()
     
     # Change the location of the buttons based on the size of the canvas
@@ -194,27 +195,6 @@ class UserCreationScreen(Mode):
         canvas.create_rectangle(*self.submitBox)
         UserCreationScreen.drawTextWithinBox("Submit", self.submitBox, canvas)
 
-class RecommendationScreen(Mode):
-    def __init__(self, restaurants):
-        super().__init__()
-        self.restaurants = restaurants
-    
-    def appStarted(self):
-        self.scrollY = 0
-        self.getDimensions()
-    
-    def getDimensions(self):
-        pass
-
-    def mousePressed(self, event):
-        pass
-
-    def redrawAll(self, canvas):
-        # Draw each restaurant card
-        for i in range(len(self.restaurants)):
-            restaurant = self.restaurants[i]
-            restaurant.draw(canvas, i)
-
 # class that displays the main screen
 # TODO: Implement searching feature
 class HomeScreen(Mode):
@@ -222,10 +202,11 @@ class HomeScreen(Mode):
         self.getRestaurantInfo()
         self.scrollY = 0
         self.backgroundColor = "white"
-        self.getDimensions()
         self.user = None
         self.otherUsers = []
         self.query = None
+        self.recommendations = []
+        self.getDimensions()
     
     def getRestaurantInfo(self):
         # Get the webpage with the info of all of the CMU Restaurants
@@ -240,9 +221,9 @@ class HomeScreen(Mode):
         cards = parser.find_all("div", class_="card")
         self.restaurants = [restaurant.CMURestaurant(card, self) for card in cards]
         # Get the webpage with other restaurants
-        url = "https://www.yelp.com/search?find_desc=Restaurants&" +\
-            "find_loc=5000%20Forbes%20Ave%2C%20Pittsburgh%2C%20PA&l=g%" +\
-            "3A-79.94270148285887%2C40.45110570038694%2C-79.95452895199287%2C40.44305530316755"
+        url = "https://www.yelp.com/search?find_desc=Restaurants&find_loc=5000%"+\
+            "20Forbes%20Ave%2C%20Pittsburgh%2C%20PA&l=g%3A-79.94270148285887%2"+\
+            "C40.45110570038694%2C-79.95452895199287%2C40.44305530316755"
         parser = restaurant.Restaurant.loadParser(url)
         # Creating all the Yelp Restaurant objects
         if parser is None or len(parser.find_all("li",\
@@ -257,9 +238,6 @@ class HomeScreen(Mode):
                 if rest.useful and rest not in self.restaurants:
                     self.restaurants.append(rest)
         self.restaurants.sort(key = lambda rest: rest.name)
-        with open("restaurants.txt", "w") as f:
-            for rest in self.restaurants:
-                f.write(rest.name+"\n")
 
     # Find the dimensions for the search bar and each of the restaurant cells
     def getDimensions(self):
@@ -269,7 +247,10 @@ class HomeScreen(Mode):
         self.loginWidth = (self.width - self.margin * 3) / 4
         self.maxColWidth = 200
         self.cols = max(1, self.width // self.maxColWidth)
-        self.rows = math.ceil(len(self.restaurants) / self.cols)
+        if len(self.recommendations) == 0:
+            self.rows = math.ceil(len(self.restaurants) / self.cols)
+        else:
+            self.rows = math.ceil(len(self.recommendations) / self.cols)
         self.cellWidth = (self.width - self.margin * (self.cols + 1)) // self.cols
         self.cellHeight = self.cellWidth
         self.maxScrollY = self.rows * (self.cellHeight + self.margin) +\
@@ -297,9 +278,12 @@ class HomeScreen(Mode):
     def mousePressed(self, event):
         if 0 <= event.x - self.margin <= self.searchBarWidth and\
             0 <= event.y - self.margin <= self.topHeight:
-            self.query = self.getUserInput("What do you want to eat?")
-            if self.query is not None:
-                pass
+            if self.query is None or self.query == "":
+                self.query = self.getUserInput("What do you want to eat?")
+                self.searchRestaurants()
+            else:
+                self.query = None
+                self.restaurants.sort(key=lambda rest:rest.name)
         elif 0 <= event.y - self.margin <= self.topHeight and\
             self.margin * 2 + self.searchBarWidth <= event.x <= self.width - self.margin:
             if self.user is None:
@@ -317,21 +301,33 @@ class HomeScreen(Mode):
                 if self.margin <= event.y <= self.margin + self.topHeight / 2 - self.margin/4: 
                     self.user = self.user.logout()
                     self.otherUsers = []
+                    self.recommendations = []
                 elif self.margin + self.topHeight / 2 + self.margin / 4 <= event.y <=\
                     self.margin + self.topHeight:
-                    # call the recommendation function
-                    self.getRecommendations()   
+                    if len(self.recommendations) == 0:
+                        # call the recommendation function
+                        self.getRecommendations()
+                    else:
+                        self.recommendations = []
+                        self.getDimensions()
         else:
             self.findClickedRestaurant(event)
 
     # Finds which restaurant has been clicked and
     # opens that restaurant's info/review page
     def findClickedRestaurant(self, event):
-        for restaurant in self.restaurants:
-            if restaurant.x0 <= event.x <= restaurant.x1 and\
-                restaurant.y0 <= event.y <= restaurant.y1:
-                self.app.setActiveMode(RestaurantScreen(self, restaurant))
-                break
+        if len(self.recommendations) == 0:
+            for rest in self.restaurants:
+                if rest.x0 <= event.x <= rest.x1 and\
+                    rest.y0 <= event.y <= rest.y1:
+                    self.app.setActiveMode(RestaurantScreen(self, rest))
+                    break
+        else:
+            for rest in self.recommendations:
+                if rest.x0 <= event.x <= rest.x1 and\
+                    rest.y0 <= event.y <= rest.y1:
+                    self.app.setActiveMode(RestaurantScreen(self, rest))
+                    break
     
     # Recommendation funcition - using K-Nearest Neighbors algorithm
     # Source for Algorigthm:
@@ -349,7 +345,9 @@ class HomeScreen(Mode):
                 if restaurant.name in user.reviews and\
                     user.reviews[restaurant.name]["rating"] > 9:
                     recommendations.add(restaurant)
-        self.app.setActiveMode(RecommendationScreen(list(recommendations)))
+        self.recommendations = list(recommendations)
+        self.recommendations.sort(key=lambda rest: rest.name)
+        self.getDimensions()
 
     # Calculates the "distance" between the current user and the other user
     # Distance is based on the similarities of the ratings between users
@@ -379,6 +377,24 @@ class HomeScreen(Mode):
         result = sorted(users, key = lambda user: distances[user])
         return result[:k]
 
+    # Search function that orders the restaurants based on their
+    # relevance to the query
+    def searchRestaurants(self):
+        scores = dict()
+        url = "https://www.thesaurus.com/browse/" + self.query.replace(" ", "%20")
+        parser = restaurant.Restaurant.loadParser(url)
+        synonyms = [self.query.upper()]
+        if parser is not None:
+            ul = parser.find("ul", class_="css-1lc0dpe et6tpn80")
+            if ul is not None:
+                for word in ul.children:
+                    synonyms.append(word.span.a.text)
+        for rest in self.restaurants:
+            for word in synonyms:
+                    scores[rest] = scores.get(rest, 0) + rest.name.upper().count(word) + rest.description.upper().count(word)
+        self.restaurants.sort(key=lambda rest:scores[rest])
+        self.restaurants.reverse()
+
     # Change the dimensions if the size of the canvas has changed
     def sizeChanged(self):
         self.getDimensions()
@@ -397,7 +413,7 @@ class HomeScreen(Mode):
                 self.margin + self.topHeight / 2, text="Search")
         else:
             canvas.create_text(self.margin + self.searchBarWidth / 2,\
-                self.margin + self.topHeight / 2, text=self.query)
+                self.margin + self.topHeight / 2, text="All Restaurants")
 
     # Draw the login buttons
     def drawLogin(self, canvas):
@@ -421,20 +437,31 @@ class HomeScreen(Mode):
             canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
                 self.margin + self.topHeight / 4 - self.margin / 8,\
                 text="Logout " + self.user.username)
-            canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
-                self.margin + self.topHeight * 3 / 4 + self.margin / 8,\
-                text="Recommendations")
+            if len(self.recommendations) == 0:
+                canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
+                    self.margin + self.topHeight * 3 / 4 + self.margin / 8,\
+                    text="Recommendations")
+            else:
+                canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
+                    self.margin + self.topHeight * 3 / 4 + self.margin / 8,\
+                    text="All Restaurants")
 
     # Draw all of the info to the canvas - background, restaurant, and header
     def redrawAll(self, canvas):
         canvas.create_rectangle(0, 0, self.width, self.app.height,\
             fill=self.backgroundColor)
 
-        # Draw each restaurant card
-        for i in range(len(self.restaurants)):
-            restaurant = self.restaurants[i]
-            restaurant.draw(canvas, i)
-        
+        if len(self.recommendations) == 0:
+            # Draw each restaurant card
+            for i in range(len(self.restaurants)):
+                restaurant = self.restaurants[i]
+                restaurant.draw(canvas, i)
+        else:
+            # Draw the recommendations card
+            for i in range(len(self.recommendations)):
+                restaurant = self.recommendations[i]
+                restaurant.draw(canvas, i)
+
         # Draw the header
         self.drawSearch(canvas)
         self.drawLogin(canvas)
