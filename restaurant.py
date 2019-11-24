@@ -7,13 +7,19 @@
 # CITATION - using requests to load webpages
 # From https://pypi.org/project/requests/
 import requests
+
 # CITATION - using BeautifulSoup to parse webpages
 # From https://pypi.org/project/beautifulsoup4/
 from bs4 import BeautifulSoup
+
 # CITATION - using Nominatim to convert addresses into latitude and longitude
 # From https://pypi.org/project/geopy/
 from geopy.geocoders import Nominatim
+
 # import textract
+
+# Using hash function from userData to hash Restaurant objects
+from userData import passwordHash
 
 # Restaurant class - has helper functions that both
 # CMURestaurant and YelpRestaurant need
@@ -22,14 +28,20 @@ class Restaurant(object):
     def loadParser(url):
         # Makes an HTTP GET request for the HTML code 
         # and creates a Beautiful Soup parse
-        website = requests.get(url)
-        source = website.text
-        return BeautifulSoup(source,'html.parser')
+        try:
+            website = requests.get(url)
+            source = website.text
+            return BeautifulSoup(source,'html.parser')
+        except:
+            return None
 
     # Representing the objects as strings
     def __repr__(self):
         return f"{self.name}"
     
+    def __hash__(self):
+        return passwordHash(self.name)
+
     # Equating restaurants based on name
     def __eq__(self, other):
         return isinstance(other, Restaurant) and self.name == other.name
@@ -108,8 +120,8 @@ class YelpRestaurant(Restaurant):
         for info in tags:
             self.description.append(info.a.text)
         self.description = ", ".join(self.description)
-        geolocator = Nominatim(user_agent="CMU Foodie", timeout=3)
-        loc = geolocator.geocode(self.location)
+        geolocator = Nominatim(user_agent="CMU Foodie")
+        loc = geolocator.geocode(self.location, timeout=10)
         # Some locations are not possible to get latitude and longitude from
         # Skip these ones
         if loc is None:

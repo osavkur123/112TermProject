@@ -17,6 +17,18 @@ class User(object):
         self.password = password
         self.reviews = reviews
     
+    # Hashing based on username and password
+    def __hash__(self):
+        return passwordHash(self.username) + int(self.password)
+
+    # Checking equality based on username
+    def __eq__(self, other):
+        return isinstance(other, User) and self.username == other.username
+
+    # Print username
+    def __repr__(self):
+        return self.username
+
     # Taking the username and reviews and converting it back into 
     # xml to be written to the users.xml file
     def convertToXmlString(self):
@@ -90,6 +102,8 @@ def login(username, password):
 # CITATION: modified from Daniel J. Bernstein's hash funcion
 # Source: https://en.wikipedia.org/wiki/Universal_hashing#Hashing_strings
 def passwordHash(password):
+    if password is None:
+        return 0
     hashVal = 11087
     multiplier = 151
     largePrime = 123456794327
@@ -98,21 +112,33 @@ def passwordHash(password):
     return hashVal
 
 if __name__ == "__main__":
-    # Testing the Hash Algorithm
-    import string
+    # Importing python's builtin acscii letters
+    from string import ascii_letters as l
+    # Populating xml file with more users to test KNN
+    # Importing python's random module to get ratings
+    import random
+
+    with open("restaurants.txt", "r") as f:
+        restaurants = f.readlines()
+    restaurants = [rest[:-1] for rest in restaurants]
     hashes = {}
-    l = string.ascii_letters
     for a in l:
         for b in l:
             for c in l:
+                # Testing hash collisions
                 s = a+b+c
                 x = passwordHash(s)
                 if x in hashes:
                     print("Collision", s, hashes[x])
                 else:
                     hashes[x] = s
-    print("DONE")
-    # testing updating the user.xml
-    user = login("other", 83473832557)
-    user.reviews["THE UNDERGROUND"]["rating"] = 7
-    user.updateFile()
+                
+                # Creating users - apparently runs for way too long
+                for d in l:
+                    name = a+b+c+d
+                    pwrd = passwordHash("password123")
+                    user = User(name, pwrd, {})
+                    random.shuffle(restaurants)
+                    for rest in restaurants[:random.randint(10,len(restaurants)-2)]:
+                        user.reviews[rest] = {"rating": random.randint(1,10), "comment":"Random"}
+                    user.updateFile()

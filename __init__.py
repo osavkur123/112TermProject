@@ -8,12 +8,16 @@
 # Uses classes from restaurant.py to store all the information scraped from the internet
 
 # CITATION - using CMU's 15-112 graphics library to help with drawing to the canvas
-# From http://www.cs.cmu.edu/~112/notes/cmu_112_graphics.py
+# From course notes: http://www.cs.cmu.edu/~112/notes/cmu_112_graphics.py
 from cmu_112_graphics import *
 
 # CITATION - using tkinter as the graphics framework
 # Url: https://github.com/python/cpython/tree/3.8/Lib/tkinter
 from tkinter import *
+
+# CITATION - using BeautifulSoup to parse webpages
+# From https://pypi.org/project/beautifulsoup4/
+from bs4 import BeautifulSoup
 
 # Using python's builtin math library
 import math
@@ -190,6 +194,27 @@ class UserCreationScreen(Mode):
         canvas.create_rectangle(*self.submitBox)
         UserCreationScreen.drawTextWithinBox("Submit", self.submitBox, canvas)
 
+class RecommendationScreen(Mode):
+    def __init__(self, restaurants):
+        super().__init__()
+        self.restaurants = restaurants
+    
+    def appStarted(self):
+        self.scrollY = 0
+        self.getDimensions()
+    
+    def getDimensions(self):
+        pass
+
+    def mousePressed(self, event):
+        pass
+
+    def redrawAll(self, canvas):
+        # Draw each restaurant card
+        for i in range(len(self.restaurants)):
+            restaurant = self.restaurants[i]
+            restaurant.draw(canvas, i)
+
 # class that displays the main screen
 # TODO: Implement searching feature
 class HomeScreen(Mode):
@@ -206,33 +231,35 @@ class HomeScreen(Mode):
         # Get the webpage with the info of all of the CMU Restaurants
         url = "https://apps.studentaffairs.cmu.edu/dining/conceptinfo/?page=listConcepts"
         parser = restaurant.Restaurant.loadParser(url)
-        cards = parser.find_all("div", class_="card")
-        if len(cards) == 0:# If bad request or something failed, load from cached file
-            with open("cmuCache.html", "w") as f:
+        if parser is None:# If bad request or something failed, load from cached file
+            with open("cmuCache.html", "r") as f:
                 parser = BeautifulSoup(f, "html.parser")
-                cards = parser.find_all("div", class_="card")
-        else:
+        else:# Write to cached file results
             with open("cmuCache.html", "w") as f:
-                f.write(parser.prettify())# Write to cached file results
+                f.write(parser.prettify())
+        cards = parser.find_all("div", class_="card")
         self.restaurants = [restaurant.CMURestaurant(card, self) for card in cards]
-        # Get the webpage with other restauratns
+        # Get the webpage with other restaurants
         url = "https://www.yelp.com/search?find_desc=Restaurants&" +\
             "find_loc=5000%20Forbes%20Ave%2C%20Pittsburgh%2C%20PA&l=g%" +\
             "3A-79.94270148285887%2C40.45110570038694%2C-79.95452895199287%2C40.44305530316755"
         parser = restaurant.Restaurant.loadParser(url)
         # Creating all the Yelp Restaurant objects
+        if parser is None or len(parser.find_all("li",\
+            class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")) == 0:
+             with open("yelpCache.html", "rb") as f:
+                parser = restaurant.BeautifulSoup(f.read(), "html.parser")
         cards = parser.find_all("li",\
             class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")
-        if len(cards) == 0:
-            with open("yelpCache.html", "rb") as f:
-                parser = restaurant.BeautifulSoup(f.read(), "html.parser")
-                cards = parser.find_all("li",\
-                    class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")
         for card in cards:
             if card.find("h4") is not None:
                 rest = restaurant.YelpRestaurant(card, self)
                 if rest.useful and rest not in self.restaurants:
                     self.restaurants.append(rest)
+        self.restaurants.sort(key = lambda rest: rest.name)
+        with open("restaurants.txt", "w") as f:
+            for rest in self.restaurants:
+                f.write(rest.name+"\n")
 
     # Find the dimensions for the search bar and each of the restaurant cells
     def getDimensions(self):
@@ -266,7 +293,7 @@ class HomeScreen(Mode):
             self.topHeight != self.height + self.maxScrollY:
             self.getDimensions()
 
-    # 
+    # Handles searching, login, registration, logout, and recommendation
     def mousePressed(self, event):
         if 0 <= event.x - self.margin <= self.searchBarWidth and\
             0 <= event.y - self.margin <= self.topHeight:
@@ -279,6 +306,7 @@ class HomeScreen(Mode):
                 if self.margin <= event.y <= self.margin + self.topHeight / 2 - self.margin/4: 
                     # testUser user password is "hello"
                     # other user password is "potatoes"
+                    # newUser user password is "pass"
                     username = self.getUserInput("What is your username?")
                     password = userData.passwordHash(self.getUserInput("What is your password?"))
                     self.user = userData.login(username, password)
@@ -306,16 +334,50 @@ class HomeScreen(Mode):
                 break
     
     # Recommendation funcition - using K-Nearest Neighbors algorithm
+    # Source for Algorigthm:
+    # https://medium.com/capital-one-tech/k-nearest-neighbors-knn-algorithm-for-machine-learning-e883219c8f26
     def getRecommendations(self):
+        k = 3
         self.otherUsers = self.user.getOtherUsers()
         distances = {}
         for otherUser in self.otherUsers:
-            distances[otherUser.username] = self.getDistance(otherUser)
+            distances[otherUser] = self.getDistance(otherUser)
+        neighbors = HomeScreen.getNearestNeighbors(distances, k)
+        recommendations = set()
+        for user in neighbors:
+            for restaurant in self.restaurants:
+                if restaurant.name in user.reviews and\
+                    user.reviews[restaurant.name]["rating"] > 9:
+                    recommendations.add(restaurant)
+        self.app.setActiveMode(RecommendationScreen(list(recommendations)))
 
     # Calculates the "distance" between the current user and the other user
+    # Distance is based on the similarities of the ratings between users
+    # If the users both have the same rating, they get a 1 for that restaurant
+    # If only one user rated a restaurant, then the other users' score is a 5 by default
+    # If neither user rated a restaurant, then the default is 7
     def getDistance(self, otherUser):
-        for restaurant in self.user.reviews:
-            print(restaurant)
+        distanceSquared = 0
+        for restaurant in self.restaurants:
+            if restaurant.name in self.user.reviews and restaurant.name in otherUser.reviews:
+                distanceSquared += (otherUser.reviews[restaurant.name]["rating"] - self.user.reviews[restaurant.name]["rating"]) ** 2
+            elif restaurant.name in self.user.reviews:
+                distanceSquared += (5 - self.user.reviews[restaurant.name]["rating"]) ** 2
+            elif restaurant.name in otherUser.reviews:
+                distanceSquared += (otherUser.reviews[restaurant.name]["rating"] - 5) ** 2
+            else:
+                distanceSquared += 7 ** 2
+        return math.sqrt(distanceSquared)
+
+    # Takes the dictionary distances mapping other users 
+    # to their distance from the current user and returns a list of the
+    # k (or the entire list) users with the smallest distance
+    @staticmethod
+    def getNearestNeighbors(distances, k):
+        users = list(distances.keys())
+        k = min(k, len(users))
+        result = sorted(users, key = lambda user: distances[user])
+        return result[:k]
 
     # Change the dimensions if the size of the canvas has changed
     def sizeChanged(self):
