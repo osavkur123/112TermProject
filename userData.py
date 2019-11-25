@@ -85,7 +85,7 @@ def createReviewsDictionary(revs):
 # login function - if the username and hashed password are in users.xml,
 # it creates a User object - otherwise, returns None
 def login(username, password):
-    if username is None or username == "":
+    if username is None or username == "" or password is None or password == "":
         return None
     with open("users.xml", "r") as database:
         data = BeautifulSoup(database, "xml")

@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding = "UTF-8"?>
 <users>
-<user username="Geelbort" password="92283486891">
-	<review restaurant="PIE FOR BREAKFAST">
-		<rating>10</rating>
-		<comment>is good</comment>
-	</review>
-</user>
 <user username="other" password="83473832557">
 	<review restaurant="THE UNDERGROUND">
 		<rating>7</rating>
@@ -18,6 +12,12 @@
 	<review restaurant="THE EXCHANGE">
 		<rating>9</rating>
 		<comment>Fairly good</comment>
+	</review>
+</user>
+<user username="Geelbort" password="92283486891">
+	<review restaurant="PIE FOR BREAKFAST">
+		<rating>10</rating>
+		<comment>is good</comment>
 	</review>
 </user>
 <user username="kj" password="1674244">

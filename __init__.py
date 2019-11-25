@@ -19,10 +19,14 @@ from tkinter import *
 # From https://pypi.org/project/beautifulsoup4/
 from bs4 import BeautifulSoup
 
+# CITATION - using requests to load webpages
+# From https://pypi.org/project/requests/
+import requests
+
 # Using python's builtin math library
 import math
 
-# importing from other file in same directory
+# importing other files in same directory
 import restaurant
 import userData
 
@@ -205,7 +209,9 @@ class HomeScreen(Mode):
         self.user = None
         self.otherUsers = []
         self.query = None
+        self.location = None
         self.recommendations = []
+        self.searchResults = []
         self.getDimensions()
     
     def getRestaurantInfo(self):
@@ -217,6 +223,8 @@ class HomeScreen(Mode):
                 parser = BeautifulSoup(f, "html.parser")
         else:# Write to cached file results
             with open("cmuCache.html", "w") as f:
+                # CITATION: Saving CMU dining information in case
+                # the website can't be loaded in the future
                 f.write(parser.prettify())
         cards = parser.find_all("div", class_="card")
         self.restaurants = [restaurant.CMURestaurant(card, self) for card in cards]
@@ -247,14 +255,16 @@ class HomeScreen(Mode):
         self.loginWidth = (self.width - self.margin * 3) / 4
         self.maxColWidth = 200
         self.cols = max(1, self.width // self.maxColWidth)
-        if len(self.recommendations) == 0:
+        if len(self.recommendations) == 0 and len(self.searchResults) == 0:
             self.rows = math.ceil(len(self.restaurants) / self.cols)
+        elif len(self.recommendations) == 0:
+            self.rows = math.ceil(len(self.searchResults) / self.cols)
         else:
             self.rows = math.ceil(len(self.recommendations) / self.cols)
         self.cellWidth = (self.width - self.margin * (self.cols + 1)) // self.cols
         self.cellHeight = self.cellWidth
-        self.maxScrollY = self.rows * (self.cellHeight + self.margin) +\
-            self.margin * 3 + self.topHeight - self.app.height
+        self.maxScrollY = max(0, self.rows * (self.cellHeight + self.margin) +\
+            self.margin * 3 + self.topHeight - self.app.height)
         if self.scrollY < 0:
             self.scrollY = 0
         elif self.scrollY > self.maxScrollY:
@@ -271,19 +281,22 @@ class HomeScreen(Mode):
     def timerFired(self):
         if (self.cellWidth + self.margin) * self.cols + self.margin != self.width or\
             (self.cellHeight + self.margin) * self.rows + self.margin +\
-            self.topHeight != self.height + self.maxScrollY:
+            self.topHeight > self.height + self.maxScrollY:
             self.getDimensions()
 
     # Handles searching, login, registration, logout, and recommendation
     def mousePressed(self, event):
         if 0 <= event.x - self.margin <= self.searchBarWidth and\
             0 <= event.y - self.margin <= self.topHeight:
-            if self.query is None or self.query == "":
+            if len(self.recommendations) == 0 and len(self.searchResults) == 0:
                 self.query = self.getUserInput("What do you want to eat?")
                 self.searchRestaurants()
+            elif len(self.searchResults) == 0:
+                self.location = self.getUserInput("What is your address?")
+                self.sortRecommendationsByDistance()
             else:
                 self.query = None
-                self.restaurants.sort(key=lambda rest:rest.name)
+                self.searchResults = []
         elif 0 <= event.y - self.margin <= self.topHeight and\
             self.margin * 2 + self.searchBarWidth <= event.x <= self.width - self.margin:
             if self.user is None:
@@ -316,8 +329,14 @@ class HomeScreen(Mode):
     # Finds which restaurant has been clicked and
     # opens that restaurant's info/review page
     def findClickedRestaurant(self, event):
-        if len(self.recommendations) == 0:
+        if len(self.recommendations) == 0 and len(self.searchResults) == 0:
             for rest in self.restaurants:
+                if rest.x0 <= event.x <= rest.x1 and\
+                    rest.y0 <= event.y <= rest.y1:
+                    self.app.setActiveMode(RestaurantScreen(self, rest))
+                    break
+        elif len(self.recommendations) == 0:
+            for rest in self.searchResults:
                 if rest.x0 <= event.x <= rest.x1 and\
                     rest.y0 <= event.y <= rest.y1:
                     self.app.setActiveMode(RestaurantScreen(self, rest))
@@ -378,8 +397,10 @@ class HomeScreen(Mode):
         return result[:k]
 
     # Search function that orders the restaurants based on their
-    # relevance to the query
+    # relevance to the query - creates a new list self.searchResults
     def searchRestaurants(self):
+        if self.query == "" or self.query == None:
+            return
         scores = dict()
         url = "https://www.thesaurus.com/browse/" + self.query.replace(" ", "%20")
         parser = restaurant.Restaurant.loadParser(url)
@@ -388,12 +409,38 @@ class HomeScreen(Mode):
             ul = parser.find("ul", class_="css-1lc0dpe et6tpn80")
             if ul is not None:
                 for word in ul.children:
-                    synonyms.append(word.span.a.text)
+                    synonyms.append(word.span.contents[0].text)
         for rest in self.restaurants:
             for word in synonyms:
                     scores[rest] = scores.get(rest, 0) + rest.name.upper().count(word) + rest.description.upper().count(word)
-        self.restaurants.sort(key=lambda rest:scores[rest])
-        self.restaurants.reverse()
+        self.searchResults = [rest for rest in scores.keys() if scores[rest] > 0]
+        self.searchResults.sort(key=lambda rest:scores[rest], reverse=True)
+
+    # Sorts the recommendation list by walking distance
+    def sortRecommendationsByDistance(self):
+        if self.location == "" or self.location is None:
+            return
+        if self.location.find("Pittsburgh") == -1:
+            self.location = self.location + " Pittburgh"
+        if self.location.find("PA") == -1:
+            self.location = self.location + ", PA"
+        self.location = self.location + " "
+        self.location.replace(" ", "%20")
+        apiKey = "Ai8o_qE0pCvSmu2Pz4PgXowMyetWm0J6B0Q_Q7yGJ-ZXQB1Hjc0pz6gXWYCcSk1R"
+        distances = dict()
+        for rest in self.recommendations:
+            restaurantLoc = str(rest.latitude) + "," + str(rest.longitude)
+            # CITATION: using Bing Maps REST Services to determine
+            # walking distances between the user's location and the restaurant
+            url = f"http://dev.virtualearth.net/REST/v1/Routes/Walking?wayPoint.1={self.location}&waypoint.2={restaurantLoc}&key={apiKey}&output=xml"
+            response = requests.get(url)
+            if response.status_code == 200:
+                xmlData = BeautifulSoup(response.text, "xml")
+                distances[rest] = xmlData.find("Route").TravelDistance.text
+            else:
+                distances[rest] = 1.6
+        self.recommendations.sort(key=lambda rest: distances[rest])
+
 
     # Change the dimensions if the size of the canvas has changed
     def sizeChanged(self):
@@ -408,9 +455,12 @@ class HomeScreen(Mode):
         canvas.create_rectangle(self.margin, self.margin,\
             self.margin + self.searchBarWidth,\
             self.margin + self.topHeight, fill=self.backgroundColor)
-        if self.query is None or self.query == "":
+        if len(self.searchResults) == 0 and len(self.recommendations) == 0:
             canvas.create_text(self.margin + self.searchBarWidth / 2,\
                 self.margin + self.topHeight / 2, text="Search")
+        elif len(self.searchResults) == 0:
+            canvas.create_text(self.margin + self.searchBarWidth / 2,\
+                self.margin + self.topHeight / 2, text="Sort by walking distance")
         else:
             canvas.create_text(self.margin + self.searchBarWidth / 2,\
                 self.margin + self.topHeight / 2, text="All Restaurants")
@@ -451,10 +501,15 @@ class HomeScreen(Mode):
         canvas.create_rectangle(0, 0, self.width, self.app.height,\
             fill=self.backgroundColor)
 
-        if len(self.recommendations) == 0:
+        if len(self.recommendations) == 0 and len(self.searchResults) == 0:
             # Draw each restaurant card
             for i in range(len(self.restaurants)):
                 restaurant = self.restaurants[i]
+                restaurant.draw(canvas, i)
+        elif len(self.recommendations) == 0:
+            # Draw each search result card
+            for i in range(len(self.searchResults)):
+                restaurant = self.searchResults[i]
                 restaurant.draw(canvas, i)
         else:
             # Draw the recommendations card
