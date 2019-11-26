@@ -112,33 +112,19 @@ def passwordHash(password):
     return hashVal
 
 if __name__ == "__main__":
-    # Importing python's builtin acscii letters
-    from string import ascii_letters as l
-    # Populating xml file with more users to test KNN
-    # Importing python's random module to get ratings
-    import random
-
-    with open("restaurants.txt", "r") as f:
-        restaurants = f.readlines()
-    restaurants = [rest[:-1] for rest in restaurants]
-    hashes = {}
-    for a in l:
-        for b in l:
-            for c in l:
-                # Testing hash collisions
-                s = a+b+c
-                x = passwordHash(s)
-                if x in hashes:
-                    print("Collision", s, hashes[x])
-                else:
-                    hashes[x] = s
-                
-                # Creating users - apparently runs for way too long
-                for d in l:
-                    name = a+b+c+d
-                    pwrd = passwordHash("password123")
-                    user = User(name, pwrd, {})
-                    random.shuffle(restaurants)
-                    for rest in restaurants[:random.randint(10,len(restaurants)-2)]:
-                        user.reviews[rest] = {"rating": random.randint(1,10), "comment":"Random"}
-                    user.updateFile()
+    pass
+    # # Importing python's builtin acscii letters
+    # from string import ascii_letters as l
+    # # Importing python's random module to get ratings
+    # import random
+    # # Testing hash collisions
+    # hashes = {}
+    # for a in l:
+    #     for b in l:
+    #         for c in l:
+    #             s = a+b+c
+    #             x = passwordHash(s)
+    #             if x in hashes:
+    #                 print("Collision", s, hashes[x])
+    #             else:
+    #                 hashes[x] = s

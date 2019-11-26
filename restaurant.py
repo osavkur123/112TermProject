@@ -3,6 +3,7 @@
 # 112 Term Project
 
 # restaurant.py - has Restaurant class with CMURestaurant and YelpRestaurant as subclasses
+# The restaurant classes contain all the information about a restaurant by webscraping the information
 
 # CITATION - using requests to load webpages
 # From https://pypi.org/project/requests/
@@ -15,11 +16,6 @@ from bs4 import BeautifulSoup
 # CITATION - using Nominatim to convert addresses into latitude and longitude
 # From https://pypi.org/project/geopy/
 from geopy.geocoders import Nominatim
-
-# import textract
-
-# Using hash function from userData to hash Restaurant objects
-from userData import passwordHash
 
 # Restaurant class - has helper functions that both
 # CMURestaurant and YelpRestaurant need

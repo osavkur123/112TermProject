@@ -281,24 +281,24 @@ class HomeScreen(Mode):
                 f.write(parser.prettify())
         cards = parser.find_all("div", class_="card")
         self.restaurants = [restaurant.CMURestaurant(card, self) for card in cards]
-        # # Get the webpage with other restaurants
-        # url = "https://www.yelp.com/search?find_desc=Restaurants&find_loc=5000%"+\
-        #     "20Forbes%20Ave%2C%20Pittsburgh%2C%20PA&l=g%3A-79.94270148285887%2"+\
-        #     "C40.45110570038694%2C-79.95452895199287%2C40.44305530316755"
-        # parser = restaurant.Restaurant.loadParser(url)
-        # # Creating all the Yelp Restaurant objects
-        # if parser is None or len(parser.find_all("li",\
-        #     class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")) == 0:
-        #      with open("yelpCache.html", "rb") as f:
-        #         parser = restaurant.BeautifulSoup(f.read(), "html.parser")
-        # cards = parser.find_all("li",\
-        #     class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")
-        # for card in cards:
-        #     if card.find("h4") is not None:
-        #         rest = restaurant.YelpRestaurant(card, self)
-        #         if rest.useful and rest not in self.restaurants:
-        #             self.restaurants.append(rest)
-        # self.restaurants.sort(key = lambda rest: rest.name)
+        # Get the webpage with other restaurants
+        url = "https://www.yelp.com/search?find_desc=Restaurants&find_loc=5000%"+\
+            "20Forbes%20Ave%2C%20Pittsburgh%2C%20PA&l=g%3A-79.94270148285887%2"+\
+            "C40.45110570038694%2C-79.95452895199287%2C40.44305530316755"
+        parser = restaurant.Restaurant.loadParser(url)
+        # Creating all the Yelp Restaurant objects
+        if parser is None or len(parser.find_all("li",\
+            class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")) == 0:
+             with open("yelpCache.html", "rb") as f:
+                parser = restaurant.BeautifulSoup(f.read(), "html.parser")
+        cards = parser.find_all("li",\
+            class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")
+        for card in cards:
+            if card.find("h4") is not None:
+                rest = restaurant.YelpRestaurant(card, self)
+                if rest.useful and rest not in self.restaurants:
+                    self.restaurants.append(rest)
+        self.restaurants.sort(key = lambda rest: rest.name)
 
     # Find the dimensions for the search bar and each of the restaurant cells
     def getDimensions(self):
@@ -503,7 +503,6 @@ class HomeScreen(Mode):
     def drawSearch(self, canvas):
         # Clear what's under the header
         canvas.create_rectangle(0, 0, self.width, self.topHeight + self.margin * 2, fill="black")
-
         # Draw Search bar
         canvas.create_rectangle(self.margin, self.margin,\
             self.margin + self.searchBarWidth,\
