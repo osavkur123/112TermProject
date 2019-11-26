@@ -32,7 +32,7 @@ import userData
 
 # class that controls the user inteface
 # switches between animations
-class UserInterface(ModalApp):
+class CMUFoodie(ModalApp):
     def appStarted(self):
         self.mainScreen = HomeScreen()
         self.newUserScreen = UserCreationScreen()
@@ -372,9 +372,11 @@ class HomeScreen(Mode):
                     self.margin + self.topHeight:
                     if len(self.recommendations) == 0:
                         # call the recommendation function
+                        self.searchResults = []
                         self.getRecommendations()
                     else:
                         self.recommendations = []
+                        self.searchResults = []
                         self.getDimensions()
         elif event.y > self.topHeight + self.margin * 2:
             self.findClickedRestaurant(event)
@@ -574,4 +576,4 @@ class HomeScreen(Mode):
         self.drawLogin(canvas)
 
 if __name__ == "__main__":
-    UserInterface(width=600, height=600)
+    CMUFoodie(width=600, height=600)
