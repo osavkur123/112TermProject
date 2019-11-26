@@ -265,6 +265,7 @@ class HomeScreen(Mode):
         self.location = None
         self.recommendations = []
         self.searchResults = []
+        self.distances = dict()
         self.getDimensions()
     
     def getRestaurantInfo(self):
@@ -368,6 +369,7 @@ class HomeScreen(Mode):
                     self.user = self.user.logout()
                     self.otherUsers = []
                     self.recommendations = []
+                    self.distances = dict()
                 elif self.margin + self.topHeight / 2 + self.margin / 4 <= event.y <=\
                     self.margin + self.topHeight:
                     if len(self.recommendations) == 0:
@@ -376,6 +378,7 @@ class HomeScreen(Mode):
                         self.getRecommendations()
                     else:
                         self.recommendations = []
+                        self.distances = dict()
                         self.searchResults = []
                         self.getDimensions()
         elif event.y > self.topHeight + self.margin * 2:
@@ -408,7 +411,8 @@ class HomeScreen(Mode):
     # https://medium.com/capital-one-tech/k-nearest-neighbors-knn-algorithm-for-machine-learning-e883219c8f26
     def getRecommendations(self):
         k = 3
-        self.otherUsers = self.user.getOtherUsers()
+        if self.otherUsers == []:
+            self.otherUsers = self.user.getOtherUsers()
         distances = {}
         for otherUser in self.otherUsers:
             distances[otherUser] = self.getDistance(otherUser)
@@ -482,7 +486,7 @@ class HomeScreen(Mode):
         self.location = self.location + " "
         self.location.replace(" ", "%20")
         apiKey = "Ai8o_qE0pCvSmu2Pz4PgXowMyetWm0J6B0Q_Q7yGJ-ZXQB1Hjc0pz6gXWYCcSk1R"
-        distances = dict()
+        self.distances = dict()
         for rest in self.recommendations:
             restaurantLoc = str(rest.latitude) + "," + str(rest.longitude)
             # CITATION: using Bing Maps REST Services to determine
@@ -491,10 +495,12 @@ class HomeScreen(Mode):
             response = requests.get(url)
             if response.status_code == 200:
                 xmlData = BeautifulSoup(response.text, "xml")
-                distances[rest] = xmlData.find("Route").TravelDistance.text
+                # Convert miles into kilometers
+                self.distances[rest] = float(xmlData.find("Route").TravelDistance.text) / 1.6
             else:
-                distances[rest] = 1.6
-        self.recommendations.sort(key=lambda rest: distances[rest])
+                # Assume about its a mile away
+                self.distances[rest] = 1
+        self.recommendations.sort(key=lambda rest: self.distances[rest])
 
 
     # Change the dimensions if the size of the canvas has changed
@@ -570,6 +576,11 @@ class HomeScreen(Mode):
             for i in range(len(self.recommendations)):
                 restaurant = self.recommendations[i]
                 restaurant.draw(canvas, i)
+                if restaurant in self.distances:
+                    dist = self.distances[restaurant]
+                    canvas.create_text((restaurant.x0+restaurant.x1)/2,\
+                        restaurant.y0 + (restaurant.y1-restaurant.y0)*3/4,\
+                        text="Distance: %0.3f miles" % dist)
 
         # Draw the header
         self.drawSearch(canvas)
