@@ -41,12 +41,20 @@ class UserInterface(ModalApp):
 # Animation that displays the restaurant information
 # and allows users to rate restaurants
 class RestaurantScreen(Mode):
-    def __init__(self, mainApp, restaurant):
+    def __init__(self, mainApp, rest):
         super().__init__()
-        self.restaurant = restaurant
+        self.restaurant = rest
         self.mainApp = mainApp
-        self.rating = ""
-        self.comment = ""
+        if self.mainApp.user is not None:
+            if self.mainApp.otherUsers == []:
+                self.mainApp.otherUsers = self.mainApp.user.getOtherUsers()
+            if self.restaurant.name in self.mainApp.user.reviews:
+                self.rating = str(self.mainApp.user.reviews[self.restaurant.name]["rating"])
+                self.comment = self.mainApp.user.reviews[self.restaurant.name]["comment"]
+            else:
+                self.rating = self.comment = ""
+        else:
+            self.rating = self.comment = ""
     
     # Get the dimensions at the beginning of the animation
     def appStarted(self):
@@ -96,6 +104,38 @@ class RestaurantScreen(Mode):
     def sizeChanged(self):
         self.getDimensions()
 
+    # Puts spaces so that all the ratings and comments line up
+    # Takes in list of users and outputs formatted string
+    def evenlySpaceRatings(self, toDisplayLst):
+        lst = [[user.username + ":", "Rating: " + str(user.reviews[self.restaurant.name]["rating"]), "Comment: " + user.reviews[self.restaurant.name]["comment"]] for user in toDisplayLst]
+        maxName = maxRating = 0
+        for user in lst:
+            maxName = max(maxName, len(user[0]))
+            maxRating = max(maxRating, len(user[1]))
+        output = ""
+        for i in range(len(lst)):
+            user = lst[i]
+            userStr = user[0] + " " * (maxName - len(user[0])) + "\t\t" + user[1] + " " * (maxRating - len(user[1])) + "\t\t" + user[2]
+            output = output + userStr
+            if i != len(lst) - 1:
+                output = output + "\n"
+        return output
+
+    # Gets what other users rated this restaurant
+    # Draws this feedback above the rating buttons
+    def drawOtherUsersRatings(self, canvas):
+        otherUsers = sorted(self.mainApp.otherUsers, key=lambda user: user.username, reverse=True)
+        toDisplayLst = []
+        i = 0
+        while len(toDisplayLst) < 5:
+            if i >= len(otherUsers): break
+            if self.restaurant.name in otherUsers[i].reviews:
+                toDisplayLst.append(otherUsers[i])
+            i += 1
+        toDisplayLst.sort(key=lambda user:user.username)
+        toDisplayStr = self.evenlySpaceRatings(toDisplayLst)
+        canvas.create_text(self.width/2, self.height*5/8, text=toDisplayStr)
+   
     # Draw the buttons and the restaurant name and description
     def redrawAll(self, canvas):
         canvas.create_rectangle(*self.exitButton)
@@ -108,8 +148,9 @@ class RestaurantScreen(Mode):
         if self.mainApp.user is not None:
             canvas.create_text(self.width/2, self.app.height/10,\
                 text="Welcome " + self.mainApp.user.username)
+            self.drawOtherUsersRatings(canvas)
             canvas.create_rectangle(*self.ratingButton)
-            if self.rating == "":
+            if self.rating == "" or self.rating is None:
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
                     (self.ratingButton[1]+self.ratingButton[3])/2, text="RATE")
             elif not self.rating.isdigit():
@@ -119,12 +160,15 @@ class RestaurantScreen(Mode):
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
                     (self.ratingButton[1]+self.ratingButton[3])/2, text=f"RATING: {self.rating}")
             canvas.create_rectangle(*self.commentButton)
-            if self.comment == "":
+            if self.comment == "" or self.comment is None:
                 canvas.create_text((self.commentButton[0]+self.commentButton[2])/2,\
                     (self.commentButton[1]+self.commentButton[3])/2, text="COMMENT")
             else:
                 canvas.create_text((self.commentButton[0]+self.commentButton[2])/2,\
                     (self.commentButton[1]+self.commentButton[3])/2, text=f"COMMENT: {self.comment}")
+        else:
+            canvas.create_text(self.width/2, self.app.height/10,\
+                text=f"Sign In to see ratings and rate {self.restaurant.name}")
 
 # Animation that handles the user creating a profile
 class UserCreationScreen(Mode):
@@ -167,7 +211,8 @@ class UserCreationScreen(Mode):
             self.app.setActiveMode(self.app.mainScreen)
         # Create a new user if passwords match and username is unique
         elif UserCreationScreen.clickWithinBox(event, self.submitBox):
-            if self.pass1 == self.pass2 and self.pass1 != "":
+            if self.username is not None and self.username != "" and \
+                self.pass1 == self.pass2 and self.pass1 != "" and self.pass1 is not None:
                 usernames = []
                 with open("users.xml", "r") as database:
                     data = BeautifulSoup(database, "xml")
@@ -189,18 +234,26 @@ class UserCreationScreen(Mode):
     # Display the boxes and text for the user
     def redrawAll(self, canvas):
         canvas.create_rectangle(*self.usernameBox)
-        UserCreationScreen.drawTextWithinBox("Enter Username", self.usernameBox, canvas)
+        if self.username is None or self.username == "":
+            UserCreationScreen.drawTextWithinBox("Enter Username", self.usernameBox, canvas)
+        else:
+            UserCreationScreen.drawTextWithinBox(self.username, self.usernameBox, canvas)
         canvas.create_rectangle(*self.pass1Box)
-        UserCreationScreen.drawTextWithinBox("Enter Password", self.pass1Box, canvas)
+        if self.pass1 is None or self.pass1 == "":
+            UserCreationScreen.drawTextWithinBox("Enter Password", self.pass1Box, canvas)
+        else:
+            UserCreationScreen.drawTextWithinBox("*" * len(self.pass1), self.pass1Box, canvas)
         canvas.create_rectangle(*self.pass2Box)
-        UserCreationScreen.drawTextWithinBox("Confirm Password", self.pass2Box, canvas)
+        if self.pass2 is None or self.pass2 == "":
+            UserCreationScreen.drawTextWithinBox("Confirm Password", self.pass2Box, canvas)
+        else:
+            UserCreationScreen.drawTextWithinBox("*" * len(self.pass2), self.pass2Box, canvas)
         canvas.create_rectangle(*self.cancelBox)
         UserCreationScreen.drawTextWithinBox("Cancel", self.cancelBox, canvas)
         canvas.create_rectangle(*self.submitBox)
         UserCreationScreen.drawTextWithinBox("Submit", self.submitBox, canvas)
 
 # class that displays the main screen
-# TODO: Implement searching feature
 class HomeScreen(Mode):
     def appStarted(self):
         self.getRestaurantInfo()
@@ -228,24 +281,24 @@ class HomeScreen(Mode):
                 f.write(parser.prettify())
         cards = parser.find_all("div", class_="card")
         self.restaurants = [restaurant.CMURestaurant(card, self) for card in cards]
-        # Get the webpage with other restaurants
-        url = "https://www.yelp.com/search?find_desc=Restaurants&find_loc=5000%"+\
-            "20Forbes%20Ave%2C%20Pittsburgh%2C%20PA&l=g%3A-79.94270148285887%2"+\
-            "C40.45110570038694%2C-79.95452895199287%2C40.44305530316755"
-        parser = restaurant.Restaurant.loadParser(url)
-        # Creating all the Yelp Restaurant objects
-        if parser is None or len(parser.find_all("li",\
-            class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")) == 0:
-             with open("yelpCache.html", "rb") as f:
-                parser = restaurant.BeautifulSoup(f.read(), "html.parser")
-        cards = parser.find_all("li",\
-            class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")
-        for card in cards:
-            if card.find("h4") is not None:
-                rest = restaurant.YelpRestaurant(card, self)
-                if rest.useful and rest not in self.restaurants:
-                    self.restaurants.append(rest)
-        self.restaurants.sort(key = lambda rest: rest.name)
+        # # Get the webpage with other restaurants
+        # url = "https://www.yelp.com/search?find_desc=Restaurants&find_loc=5000%"+\
+        #     "20Forbes%20Ave%2C%20Pittsburgh%2C%20PA&l=g%3A-79.94270148285887%2"+\
+        #     "C40.45110570038694%2C-79.95452895199287%2C40.44305530316755"
+        # parser = restaurant.Restaurant.loadParser(url)
+        # # Creating all the Yelp Restaurant objects
+        # if parser is None or len(parser.find_all("li",\
+        #     class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")) == 0:
+        #      with open("yelpCache.html", "rb") as f:
+        #         parser = restaurant.BeautifulSoup(f.read(), "html.parser")
+        # cards = parser.find_all("li",\
+        #     class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")
+        # for card in cards:
+        #     if card.find("h4") is not None:
+        #         rest = restaurant.YelpRestaurant(card, self)
+        #         if rest.useful and rest not in self.restaurants:
+        #             self.restaurants.append(rest)
+        # self.restaurants.sort(key = lambda rest: rest.name)
 
     # Find the dimensions for the search bar and each of the restaurant cells
     def getDimensions(self):
@@ -323,7 +376,7 @@ class HomeScreen(Mode):
                     else:
                         self.recommendations = []
                         self.getDimensions()
-        else:
+        elif event.y > self.topHeight + self.margin * 2:
             self.findClickedRestaurant(event)
 
     # Finds which restaurant has been clicked and

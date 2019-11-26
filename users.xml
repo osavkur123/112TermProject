@@ -14,6 +14,16 @@
 		<comment>Fairly good</comment>
 	</review>
 </user>
+<user username="theodardia" password="38173122740">
+	<review restaurant="BOAR’S HEAD GRAND">
+		<rating>5</rating>
+		<comment>Decent</comment>
+	</review>
+	<review restaurant="ORIENT EXPRESS">
+		<rating>9</rating>
+		<comment>Good food. Quick. Wish they took DineX</comment>
+	</review>
+</user>
 <user username="Geelbort" password="92283486891">
 	<review restaurant="PIE FOR BREAKFAST">
 		<rating>10</rating>
