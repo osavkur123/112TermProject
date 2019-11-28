@@ -7,10 +7,10 @@
 # Calls fuctions from userData.py to log users in and out
 # Uses classes from restaurant.py to store all the information scraped from the internet
 
-# TODO: Custom Text Box
-# TODO: Better UI - scroll bar
-# TODO: Better Searching Algorithm
-# TODO: Add sorting by distance for search results
+# 4)TODO: Custom Text Box
+# 3)TODO: Better UI - scroll bar
+# 2)TODO: Better Searching Algorithm
+# 1)TODO: Add NLP to comments to determine if review was positive or negative to influence recommendation
 
 # CITATION - using CMU's 15-112 graphics library to help with drawing to the canvas
 # From course notes: http://www.cs.cmu.edu/~112/notes/cmu_112_graphics.py
@@ -358,10 +358,10 @@ class HomeScreen(Mode):
                 self.searchRestaurants()
             elif len(self.searchResults) == 0:
                 self.location = self.getUserInput("What is your address?")
-                self.sortRecommendationsByDistance()
+                self.sortRestaurantsByDistance(self.recommendations)
             else:
-                self.query = None
-                self.searchResults = []
+                self.location = self.getUserInput("What is your address?")
+                self.sortRestaurantsByDistance(self.searchResults)
         elif 0 <= event.y - self.margin <= self.topHeight and\
             self.margin * 2 + self.searchBarWidth <= event.x <= self.width - self.margin:
             if self.user is None:
@@ -374,9 +374,18 @@ class HomeScreen(Mode):
                     self.user = userData.login(username, password)
                 elif self.margin + self.topHeight / 2 + self.margin / 4 <=\
                     event.y <= self.margin + self.topHeight:
-                    self.app.setActiveMode(self.app.newUserScreen)
+                    if len(self.searchResults) == 0 and len(self.recommendations) == 0:
+                        # New User Screen
+                        self.app.setActiveMode(self.app.newUserScreen)
+                    else:
+                        # Get all the restaurants
+                        self.distances = dict()
+                        self.searchResults = []
+                        self.recommendations = []
+                        self.getDimensions()
             else:
-                if self.margin <= event.y <= self.margin + self.topHeight / 2 - self.margin/4: 
+                if self.margin <= event.y <= self.margin + self.topHeight / 2 - self.margin/4:
+                    # Logout
                     self.user = self.user.logout()
                     self.otherUsers = []
                     self.recommendations = []
@@ -385,9 +394,11 @@ class HomeScreen(Mode):
                     self.margin + self.topHeight:
                     if len(self.recommendations) == 0:
                         # call the recommendation function
+                        self.distances = dict()
                         self.searchResults = []
                         self.getRecommendations()
                     else:
+                        # Get all restaurants
                         self.recommendations = []
                         self.distances = dict()
                         self.searchResults = []
@@ -486,8 +497,8 @@ class HomeScreen(Mode):
         self.searchResults = [rest for rest in scores.keys() if scores[rest] > 0]
         self.searchResults.sort(key=lambda rest:scores[rest], reverse=True)
 
-    # Sorts the recommendation list by walking distance
-    def sortRecommendationsByDistance(self):
+    # Sorts the restaurant list by walking distance
+    def sortRestaurantsByDistance(self, restLst):
         if self.location == "" or self.location is None:
             return
         if self.location.find("Pittsburgh") == -1:
@@ -498,7 +509,7 @@ class HomeScreen(Mode):
         self.location.replace(" ", "%20")
         apiKey = "Ai8o_qE0pCvSmu2Pz4PgXowMyetWm0J6B0Q_Q7yGJ-ZXQB1Hjc0pz6gXWYCcSk1R"
         self.distances = dict()
-        for rest in self.recommendations:
+        for rest in restLst:
             restaurantLoc = str(rest.latitude) + "," + str(rest.longitude)
             # CITATION: using Bing Maps REST Services to determine
             # walking distances between the user's location and the restaurant
@@ -511,7 +522,7 @@ class HomeScreen(Mode):
             else:
                 # Assume about its a mile away
                 self.distances[rest] = 1
-        self.recommendations.sort(key=lambda rest: self.distances[rest])
+        restLst.sort(key=lambda rest: self.distances[rest])
 
     # Change the dimensions if the size of the canvas has changed
     def sizeChanged(self):
@@ -528,12 +539,9 @@ class HomeScreen(Mode):
         if len(self.searchResults) == 0 and len(self.recommendations) == 0:
             canvas.create_text(self.margin + self.searchBarWidth / 2,\
                 self.margin + self.topHeight / 2, text="Search", font="Times")
-        elif len(self.searchResults) == 0:
-            canvas.create_text(self.margin + self.searchBarWidth / 2,\
-                self.margin + self.topHeight / 2, text="Sort by walking distance", font="Times")
         else:
             canvas.create_text(self.margin + self.searchBarWidth / 2,\
-                self.margin + self.topHeight / 2, text="All Restaurants", font="Times")
+                self.margin + self.topHeight / 2, text="Sort by walking distance", font="Times")
 
     # Draw the login buttons
     def drawLogin(self, canvas):
@@ -549,15 +557,20 @@ class HomeScreen(Mode):
             # Display the text for the login and sign up buttons
             canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
                 self.margin + self.topHeight / 4 - self.margin / 8, text="Login", font="Times 12")
-            canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
-                self.margin + self.topHeight * 3 / 4 + self.margin / 8,\
-                text="Sign Up", font="Times 12")
+            if len(self.searchResults) == 0:
+                canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
+                    self.margin + self.topHeight * 3 / 4 + self.margin / 8,\
+                    text="Sign Up", font="Times 12")
+            else:
+                canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
+                    self.margin + self.topHeight * 3 / 4 + self.margin / 8,\
+                    text="All Restaurants", font="Times 12")
         else:
             # Display the text for the logout and recommendation buttons
             canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
                 self.margin + self.topHeight / 4 - self.margin / 8,\
                 text="Logout " + self.user.username, font="Times 12")
-            if len(self.recommendations) == 0:
+            if len(self.recommendations) == 0 and len(self.searchResults) == 0:
                 canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
                     self.margin + self.topHeight * 3 / 4 + self.margin / 8,\
                     text="Recommendations", font="Times 12")
@@ -565,6 +578,14 @@ class HomeScreen(Mode):
                 canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
                     self.margin + self.topHeight * 3 / 4 + self.margin / 8,\
                     text="All Restaurants", font="Times 12")
+
+    # Draws the distance a restaurant is
+    def drawDistance(self, rest, canvas):
+        if rest in self.distances:
+            dist = self.distances[rest]
+            canvas.create_text((rest.x0+rest.x1)/2,\
+                rest.y0 + (rest.y1-rest.y0)*3/4,\
+                text="Distance: %0.3f miles" % dist, font="Times 10")
 
     # Draw all of the info to the canvas - background, restaurant, and header
     def redrawAll(self, canvas):
@@ -581,16 +602,13 @@ class HomeScreen(Mode):
             for i in range(len(self.searchResults)):
                 restaurant = self.searchResults[i]
                 restaurant.draw(canvas, i)
+                self.drawDistance(restaurant, canvas)
         else:
             # Draw the recommendations card
             for i in range(len(self.recommendations)):
                 restaurant = self.recommendations[i]
                 restaurant.draw(canvas, i)
-                if restaurant in self.distances:
-                    dist = self.distances[restaurant]
-                    canvas.create_text((restaurant.x0+restaurant.x1)/2,\
-                        restaurant.y0 + (restaurant.y1-restaurant.y0)*3/4,\
-                        text="Distance: %0.3f miles" % dist, font="Times 10")
+                self.drawDistance(restaurant, canvas)
 
         # Draw the header
         self.drawSearch(canvas)
