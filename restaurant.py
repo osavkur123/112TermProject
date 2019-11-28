@@ -85,10 +85,10 @@ class Restaurant(object):
         if len(self.name) > 24:
             words = self.name.split(" ")
             mid = len(words) // 2
-            canvas.create_text((self.x0+self.x1)/2, (self.y0+self.y1)/2-7, text=" ".join(words[:mid]))
-            canvas.create_text((self.x0+self.x1)/2, (self.y0+self.y1)/2+7, text=" ".join(words[mid:]))
+            canvas.create_text((self.x0+self.x1)/2, (self.y0+self.y1)/2-7, text=" ".join(words[:mid]), font="Times 10")
+            canvas.create_text((self.x0+self.x1)/2, (self.y0+self.y1)/2+7, text=" ".join(words[mid:]), font="Times 10")
         else:
-            canvas.create_text((self.x0+self.x1)/2, (self.y0+self.y1)/2, text=self.name)
+            canvas.create_text((self.x0+self.x1)/2, (self.y0+self.y1)/2, text=self.name, font="Times 10")
 
 
 # Takes a card from CMU's menu and extracts the information from it

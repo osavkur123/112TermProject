@@ -8,7 +8,7 @@
 # Uses classes from restaurant.py to store all the information scraped from the internet
 
 # TODO: Custom Text Box
-# TODO: Better UI
+# TODO: Better UI - scroll bar
 # TODO: Better Searching Algorithm
 # TODO: Add sorting by distance for search results
 
@@ -142,44 +142,44 @@ class RestaurantScreen(Mode):
             i += 1
         toDisplayLst.sort(key=lambda user:user.username)
         toDisplayStr = self.evenlySpaceRatings(toDisplayLst)
-        canvas.create_text(self.width/2, self.height*5/8, text=toDisplayStr, font="Times 9")
+        canvas.create_text(self.width/2, self.height*5/8, text=toDisplayStr, font="Times 12")
    
     # Draw the buttons and the restaurant name and description
     def redrawAll(self, canvas):
         canvas.create_rectangle(*self.exitButton)
         canvas.create_text((self.exitButton[0]+self.exitButton[2])/2,\
-            (self.exitButton[1]+self.exitButton[3])/2, text="EXIT")
+            (self.exitButton[1]+self.exitButton[3])/2, text="EXIT", font="Times")
         canvas.create_text(self.width/2, self.app.height/4,\
-            text=self.restaurant.name)
+            text=self.restaurant.name, font="Times")
         canvas.create_text(self.width/2, self.app.height/2,\
-            text=self.restaurant.description)
+            text=self.restaurant.description, font="Times 10")
         if self.mainApp.user is not None:
             canvas.create_text(self.width/2, self.app.height/10,\
-                text="Welcome " + self.mainApp.user.username)
+                text="Welcome " + self.mainApp.user.username, font="Times")
             self.drawOtherUsersRatings(canvas)
             canvas.create_rectangle(*self.ratingButton)
             if self.rating == "" or self.rating is None:
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text="RATE")
+                    (self.ratingButton[1]+self.ratingButton[3])/2, text="RATE", font="Times")
             elif not self.rating.isdigit():
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER")
+                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER", font="Times")
             elif not 1 <= int(self.rating) <= 10:
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER BETWEEN 1 AND 10")
+                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER BETWEEN 1 AND 10", font="Times")
             else:
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text=f"RATING: {self.rating}")
+                    (self.ratingButton[1]+self.ratingButton[3])/2, text=f"RATING: {self.rating}", font="Times")
             canvas.create_rectangle(*self.commentButton)
             if self.comment == "" or self.comment is None:
                 canvas.create_text((self.commentButton[0]+self.commentButton[2])/2,\
-                    (self.commentButton[1]+self.commentButton[3])/2, text="COMMENT")
+                    (self.commentButton[1]+self.commentButton[3])/2, text="COMMENT", font="Times")
             else:
                 canvas.create_text((self.commentButton[0]+self.commentButton[2])/2,\
-                    (self.commentButton[1]+self.commentButton[3])/2, text=f"COMMENT: {self.comment}")
+                    (self.commentButton[1]+self.commentButton[3])/2, text=f"COMMENT: {self.comment}", font="Times")
         else:
             canvas.create_text(self.width/2, self.app.height/10,\
-                text=f"Sign In to see ratings and rate {self.restaurant.name}")
+                text=f"Sign In to see ratings and rate {self.restaurant.name}", font="Times")
 
 # Animation that handles the user creating a profile
 class UserCreationScreen(Mode):
@@ -240,7 +240,7 @@ class UserCreationScreen(Mode):
     # Draw the text within a box
     @staticmethod
     def drawTextWithinBox(text, box, canvas):
-        canvas.create_text((box[0]+box[2])/2, (box[1]+box[3])/2, text=text)
+        canvas.create_text((box[0]+box[2])/2, (box[1]+box[3])/2, text=text, font="Times")
 
     # Display the boxes and text for the user
     def redrawAll(self, canvas):
@@ -527,13 +527,13 @@ class HomeScreen(Mode):
             self.margin + self.topHeight, fill=self.backgroundColor)
         if len(self.searchResults) == 0 and len(self.recommendations) == 0:
             canvas.create_text(self.margin + self.searchBarWidth / 2,\
-                self.margin + self.topHeight / 2, text="Search")
+                self.margin + self.topHeight / 2, text="Search", font="Times")
         elif len(self.searchResults) == 0:
             canvas.create_text(self.margin + self.searchBarWidth / 2,\
-                self.margin + self.topHeight / 2, text="Sort by walking distance")
+                self.margin + self.topHeight / 2, text="Sort by walking distance", font="Times")
         else:
             canvas.create_text(self.margin + self.searchBarWidth / 2,\
-                self.margin + self.topHeight / 2, text="All Restaurants")
+                self.margin + self.topHeight / 2, text="All Restaurants", font="Times")
 
     # Draw the login buttons
     def drawLogin(self, canvas):
@@ -548,23 +548,23 @@ class HomeScreen(Mode):
         if self.user is None:
             # Display the text for the login and sign up buttons
             canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
-                self.margin + self.topHeight / 4 - self.margin / 8, text="Login")
+                self.margin + self.topHeight / 4 - self.margin / 8, text="Login", font="Times 12")
             canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
                 self.margin + self.topHeight * 3 / 4 + self.margin / 8,\
-                text="Sign Up")
+                text="Sign Up", font="Times 12")
         else:
             # Display the text for the logout and recommendation buttons
             canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
                 self.margin + self.topHeight / 4 - self.margin / 8,\
-                text="Logout " + self.user.username)
+                text="Logout " + self.user.username, font="Times 12")
             if len(self.recommendations) == 0:
                 canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
                     self.margin + self.topHeight * 3 / 4 + self.margin / 8,\
-                    text="Recommendations")
+                    text="Recommendations", font="Times 12")
             else:
                 canvas.create_text(self.width - self.margin - self.loginWidth / 2,\
                     self.margin + self.topHeight * 3 / 4 + self.margin / 8,\
-                    text="All Restaurants")
+                    text="All Restaurants", font="Times 12")
 
     # Draw all of the info to the canvas - background, restaurant, and header
     def redrawAll(self, canvas):
@@ -590,7 +590,7 @@ class HomeScreen(Mode):
                     dist = self.distances[restaurant]
                     canvas.create_text((restaurant.x0+restaurant.x1)/2,\
                         restaurant.y0 + (restaurant.y1-restaurant.y0)*3/4,\
-                        text="Distance: %0.3f miles" % dist)
+                        text="Distance: %0.3f miles" % dist, font="Times 10")
 
         # Draw the header
         self.drawSearch(canvas)
