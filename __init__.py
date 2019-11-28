@@ -7,7 +7,6 @@
 # Calls fuctions from userData.py to log users in and out
 # Uses classes from restaurant.py to store all the information scraped from the internet
 
-# TODO: Look into special characters in name interfering with reviews
 # TODO: Custom Text Box
 # TODO: Better UI
 # TODO: Better Searching Algorithm
@@ -143,7 +142,7 @@ class RestaurantScreen(Mode):
             i += 1
         toDisplayLst.sort(key=lambda user:user.username)
         toDisplayStr = self.evenlySpaceRatings(toDisplayLst)
-        canvas.create_text(self.width/2, self.height*5/8, text=toDisplayStr, font="Times 8")
+        canvas.create_text(self.width/2, self.height*5/8, text=toDisplayStr, font="Times 9")
    
     # Draw the buttons and the restaurant name and description
     def redrawAll(self, canvas):

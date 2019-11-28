@@ -112,19 +112,10 @@ def passwordHash(password):
     return hashVal
 
 if __name__ == "__main__":
-    pass
-    # # Importing python's builtin acscii letters
-    # from string import ascii_letters as l
-    # # Importing python's random module to get ratings
-    # import random
-    # # Testing hash collisions
-    # hashes = {}
-    # for a in l:
-    #     for b in l:
-    #         for c in l:
-    #             s = a+b+c
-    #             x = passwordHash(s)
-    #             if x in hashes:
-    #                 print("Collision", s, hashes[x])
-    #             else:
-    #                 hashes[x] = s
+    restaurants = set()
+    with open("users.xml", "rb") as f:
+        parser = BeautifulSoup(f, "xml")
+        for user in parser.find_all("user"):
+            for rest in user.find_all("review"):
+                restaurants.add(rest["restaurant"])
+    restaurants = sorted(list(restaurants))
