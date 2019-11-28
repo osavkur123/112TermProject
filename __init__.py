@@ -7,6 +7,11 @@
 # Calls fuctions from userData.py to log users in and out
 # Uses classes from restaurant.py to store all the information scraped from the internet
 
+# TODO: Custom Text Box
+# TODO: Better UI
+# TODO: Better Searching Algorithm
+# TODO: Add sorting by distance for search results
+
 # CITATION - using CMU's 15-112 graphics library to help with drawing to the canvas
 # From course notes: http://www.cs.cmu.edu/~112/notes/cmu_112_graphics.py
 from cmu_112_graphics import *
@@ -19,16 +24,20 @@ from tkinter import *
 # From https://pypi.org/project/beautifulsoup4/
 from bs4 import BeautifulSoup
 
+# CITATION - using requests to load webpages
+# From https://pypi.org/project/requests/
+import requests
+
 # Using python's builtin math library
 import math
 
-# importing from other file in same directory
+# importing other files in same directory
 import restaurant
 import userData
 
 # class that controls the user inteface
 # switches between animations
-class UserInterface(ModalApp):
+class CMUFoodie(ModalApp):
     def appStarted(self):
         self.mainScreen = HomeScreen()
         self.newUserScreen = UserCreationScreen()
@@ -37,12 +46,20 @@ class UserInterface(ModalApp):
 # Animation that displays the restaurant information
 # and allows users to rate restaurants
 class RestaurantScreen(Mode):
-    def __init__(self, mainApp, restaurant):
+    def __init__(self, mainApp, rest):
         super().__init__()
-        self.restaurant = restaurant
+        self.restaurant = rest
         self.mainApp = mainApp
-        self.rating = ""
-        self.comment = ""
+        if self.mainApp.user is not None:
+            if self.mainApp.otherUsers == []:
+                self.mainApp.otherUsers = self.mainApp.user.getOtherUsers()
+            if self.restaurant.name in self.mainApp.user.reviews:
+                self.rating = str(self.mainApp.user.reviews[self.restaurant.name]["rating"])
+                self.comment = self.mainApp.user.reviews[self.restaurant.name]["comment"]
+            else:
+                self.rating = self.comment = ""
+        else:
+            self.rating = self.comment = ""
     
     # Get the dimensions at the beginning of the animation
     def appStarted(self):
@@ -83,7 +100,7 @@ class RestaurantScreen(Mode):
             
             # Update the file if both are filled out
             if self.rating != "" and self.rating is not None and\
-                self.rating.isdigit() and self.comment != "" and self.comment is not None:
+                self.rating.isdigit() and 1 <= int(self.rating) <= 10 and self.comment != "" and self.comment is not None:
                 self.mainApp.user.reviews[self.restaurant.name] = {
                     "rating": int(self.rating), "comment": self.comment}
                 self.mainApp.user.updateFile()
@@ -92,6 +109,41 @@ class RestaurantScreen(Mode):
     def sizeChanged(self):
         self.getDimensions()
 
+    # Puts spaces so that all the ratings and comments line up
+    # Takes in list of users and outputs formatted string
+    def evenlySpaceRatings(self, toDisplayLst):
+        lst = [[user.username + ":", "Rating: " + str(user.reviews[self.restaurant.name]["rating"]), "Comment: " + user.reviews[self.restaurant.name]["comment"]] for user in toDisplayLst]
+        maxSpace = 0
+        for user in lst:
+            maxSpace = max(maxSpace, len(user[0]), len(user[1]))
+        maxSpace += 5
+        maxSpace = 4 * ((3 + maxSpace) // 4)
+        output = ""
+        for i in range(len(lst)):
+            user = lst[i]
+            space1 = maxSpace - len(user[0])
+            space2 = maxSpace - len(user[1])
+            userStr = user[0] + " " * space1 + "\t" + user[1] + " " * space2 + "\t" + user[2]
+            output = output + userStr
+            if i != len(lst) - 1:
+                output = output + "\n"
+        return output
+
+    # Gets what other users rated this restaurant
+    # Draws this feedback above the rating buttons
+    def drawOtherUsersRatings(self, canvas):
+        otherUsers = sorted(self.mainApp.otherUsers, key=lambda user: user.username.lower(), reverse=True)
+        toDisplayLst = []
+        i = 0
+        while len(toDisplayLst) < 5:
+            if i >= len(otherUsers): break
+            if self.restaurant.name in otherUsers[i].reviews:
+                toDisplayLst.append(otherUsers[i])
+            i += 1
+        toDisplayLst.sort(key=lambda user:user.username)
+        toDisplayStr = self.evenlySpaceRatings(toDisplayLst)
+        canvas.create_text(self.width/2, self.height*5/8, text=toDisplayStr, font="Times 9")
+   
     # Draw the buttons and the restaurant name and description
     def redrawAll(self, canvas):
         canvas.create_rectangle(*self.exitButton)
@@ -104,23 +156,30 @@ class RestaurantScreen(Mode):
         if self.mainApp.user is not None:
             canvas.create_text(self.width/2, self.app.height/10,\
                 text="Welcome " + self.mainApp.user.username)
+            self.drawOtherUsersRatings(canvas)
             canvas.create_rectangle(*self.ratingButton)
-            if self.rating == "":
+            if self.rating == "" or self.rating is None:
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
                     (self.ratingButton[1]+self.ratingButton[3])/2, text="RATE")
             elif not self.rating.isdigit():
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
                     (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER")
+            elif not 1 <= int(self.rating) <= 10:
+                canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
+                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER BETWEEN 1 AND 10")
             else:
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
                     (self.ratingButton[1]+self.ratingButton[3])/2, text=f"RATING: {self.rating}")
             canvas.create_rectangle(*self.commentButton)
-            if self.comment == "":
+            if self.comment == "" or self.comment is None:
                 canvas.create_text((self.commentButton[0]+self.commentButton[2])/2,\
                     (self.commentButton[1]+self.commentButton[3])/2, text="COMMENT")
             else:
                 canvas.create_text((self.commentButton[0]+self.commentButton[2])/2,\
                     (self.commentButton[1]+self.commentButton[3])/2, text=f"COMMENT: {self.comment}")
+        else:
+            canvas.create_text(self.width/2, self.app.height/10,\
+                text=f"Sign In to see ratings and rate {self.restaurant.name}")
 
 # Animation that handles the user creating a profile
 class UserCreationScreen(Mode):
@@ -163,7 +222,8 @@ class UserCreationScreen(Mode):
             self.app.setActiveMode(self.app.mainScreen)
         # Create a new user if passwords match and username is unique
         elif UserCreationScreen.clickWithinBox(event, self.submitBox):
-            if self.pass1 == self.pass2 and self.pass1 != "":
+            if self.username is not None and self.username != "" and \
+                self.pass1 == self.pass2 and self.pass1 != "" and self.pass1 is not None:
                 usernames = []
                 with open("users.xml", "r") as database:
                     data = BeautifulSoup(database, "xml")
@@ -185,18 +245,26 @@ class UserCreationScreen(Mode):
     # Display the boxes and text for the user
     def redrawAll(self, canvas):
         canvas.create_rectangle(*self.usernameBox)
-        UserCreationScreen.drawTextWithinBox("Enter Username", self.usernameBox, canvas)
+        if self.username is None or self.username == "":
+            UserCreationScreen.drawTextWithinBox("Enter Username", self.usernameBox, canvas)
+        else:
+            UserCreationScreen.drawTextWithinBox(self.username, self.usernameBox, canvas)
         canvas.create_rectangle(*self.pass1Box)
-        UserCreationScreen.drawTextWithinBox("Enter Password", self.pass1Box, canvas)
+        if self.pass1 is None or self.pass1 == "":
+            UserCreationScreen.drawTextWithinBox("Enter Password", self.pass1Box, canvas)
+        else:
+            UserCreationScreen.drawTextWithinBox("*" * len(self.pass1), self.pass1Box, canvas)
         canvas.create_rectangle(*self.pass2Box)
-        UserCreationScreen.drawTextWithinBox("Confirm Password", self.pass2Box, canvas)
+        if self.pass2 is None or self.pass2 == "":
+            UserCreationScreen.drawTextWithinBox("Confirm Password", self.pass2Box, canvas)
+        else:
+            UserCreationScreen.drawTextWithinBox("*" * len(self.pass2), self.pass2Box, canvas)
         canvas.create_rectangle(*self.cancelBox)
         UserCreationScreen.drawTextWithinBox("Cancel", self.cancelBox, canvas)
         canvas.create_rectangle(*self.submitBox)
         UserCreationScreen.drawTextWithinBox("Submit", self.submitBox, canvas)
 
 # class that displays the main screen
-# TODO: Implement searching feature
 class HomeScreen(Mode):
     def appStarted(self):
         self.getRestaurantInfo()
@@ -205,7 +273,10 @@ class HomeScreen(Mode):
         self.user = None
         self.otherUsers = []
         self.query = None
+        self.location = None
         self.recommendations = []
+        self.searchResults = []
+        self.distances = dict()
         self.getDimensions()
     
     def getRestaurantInfo(self):
@@ -217,6 +288,8 @@ class HomeScreen(Mode):
                 parser = BeautifulSoup(f, "html.parser")
         else:# Write to cached file results
             with open("cmuCache.html", "w") as f:
+                # CITATION: Saving CMU dining information in case
+                # the website can't be loaded in the future
                 f.write(parser.prettify())
         cards = parser.find_all("div", class_="card")
         self.restaurants = [restaurant.CMURestaurant(card, self) for card in cards]
@@ -247,14 +320,16 @@ class HomeScreen(Mode):
         self.loginWidth = (self.width - self.margin * 3) / 4
         self.maxColWidth = 200
         self.cols = max(1, self.width // self.maxColWidth)
-        if len(self.recommendations) == 0:
+        if len(self.recommendations) == 0 and len(self.searchResults) == 0:
             self.rows = math.ceil(len(self.restaurants) / self.cols)
+        elif len(self.recommendations) == 0:
+            self.rows = math.ceil(len(self.searchResults) / self.cols)
         else:
             self.rows = math.ceil(len(self.recommendations) / self.cols)
         self.cellWidth = (self.width - self.margin * (self.cols + 1)) // self.cols
         self.cellHeight = self.cellWidth
-        self.maxScrollY = self.rows * (self.cellHeight + self.margin) +\
-            self.margin * 3 + self.topHeight - self.app.height
+        self.maxScrollY = max(0, self.rows * (self.cellHeight + self.margin) +\
+            self.margin * 3 + self.topHeight - self.app.height)
         if self.scrollY < 0:
             self.scrollY = 0
         elif self.scrollY > self.maxScrollY:
@@ -271,19 +346,22 @@ class HomeScreen(Mode):
     def timerFired(self):
         if (self.cellWidth + self.margin) * self.cols + self.margin != self.width or\
             (self.cellHeight + self.margin) * self.rows + self.margin +\
-            self.topHeight != self.height + self.maxScrollY:
+            self.topHeight > self.height + self.maxScrollY:
             self.getDimensions()
 
     # Handles searching, login, registration, logout, and recommendation
     def mousePressed(self, event):
         if 0 <= event.x - self.margin <= self.searchBarWidth and\
             0 <= event.y - self.margin <= self.topHeight:
-            if self.query is None or self.query == "":
+            if len(self.recommendations) == 0 and len(self.searchResults) == 0:
                 self.query = self.getUserInput("What do you want to eat?")
                 self.searchRestaurants()
+            elif len(self.searchResults) == 0:
+                self.location = self.getUserInput("What is your address?")
+                self.sortRecommendationsByDistance()
             else:
                 self.query = None
-                self.restaurants.sort(key=lambda rest:rest.name)
+                self.searchResults = []
         elif 0 <= event.y - self.margin <= self.topHeight and\
             self.margin * 2 + self.searchBarWidth <= event.x <= self.width - self.margin:
             if self.user is None:
@@ -302,22 +380,32 @@ class HomeScreen(Mode):
                     self.user = self.user.logout()
                     self.otherUsers = []
                     self.recommendations = []
+                    self.distances = dict()
                 elif self.margin + self.topHeight / 2 + self.margin / 4 <= event.y <=\
                     self.margin + self.topHeight:
                     if len(self.recommendations) == 0:
                         # call the recommendation function
+                        self.searchResults = []
                         self.getRecommendations()
                     else:
                         self.recommendations = []
+                        self.distances = dict()
+                        self.searchResults = []
                         self.getDimensions()
-        else:
+        elif event.y > self.topHeight + self.margin * 2:
             self.findClickedRestaurant(event)
 
     # Finds which restaurant has been clicked and
     # opens that restaurant's info/review page
     def findClickedRestaurant(self, event):
-        if len(self.recommendations) == 0:
+        if len(self.recommendations) == 0 and len(self.searchResults) == 0:
             for rest in self.restaurants:
+                if rest.x0 <= event.x <= rest.x1 and\
+                    rest.y0 <= event.y <= rest.y1:
+                    self.app.setActiveMode(RestaurantScreen(self, rest))
+                    break
+        elif len(self.recommendations) == 0:
+            for rest in self.searchResults:
                 if rest.x0 <= event.x <= rest.x1 and\
                     rest.y0 <= event.y <= rest.y1:
                     self.app.setActiveMode(RestaurantScreen(self, rest))
@@ -334,7 +422,8 @@ class HomeScreen(Mode):
     # https://medium.com/capital-one-tech/k-nearest-neighbors-knn-algorithm-for-machine-learning-e883219c8f26
     def getRecommendations(self):
         k = 3
-        self.otherUsers = self.user.getOtherUsers()
+        if self.otherUsers == []:
+            self.otherUsers = self.user.getOtherUsers()
         distances = {}
         for otherUser in self.otherUsers:
             distances[otherUser] = self.getDistance(otherUser)
@@ -378,8 +467,10 @@ class HomeScreen(Mode):
         return result[:k]
 
     # Search function that orders the restaurants based on their
-    # relevance to the query
+    # relevance to the query - creates a new list self.searchResults
     def searchRestaurants(self):
+        if self.query == "" or self.query == None:
+            return
         scores = dict()
         url = "https://www.thesaurus.com/browse/" + self.query.replace(" ", "%20")
         parser = restaurant.Restaurant.loadParser(url)
@@ -388,12 +479,39 @@ class HomeScreen(Mode):
             ul = parser.find("ul", class_="css-1lc0dpe et6tpn80")
             if ul is not None:
                 for word in ul.children:
-                    synonyms.append(word.span.a.text)
+                    synonyms.append(word.span.contents[0].text)
         for rest in self.restaurants:
             for word in synonyms:
                     scores[rest] = scores.get(rest, 0) + rest.name.upper().count(word) + rest.description.upper().count(word)
-        self.restaurants.sort(key=lambda rest:scores[rest])
-        self.restaurants.reverse()
+        self.searchResults = [rest for rest in scores.keys() if scores[rest] > 0]
+        self.searchResults.sort(key=lambda rest:scores[rest], reverse=True)
+
+    # Sorts the recommendation list by walking distance
+    def sortRecommendationsByDistance(self):
+        if self.location == "" or self.location is None:
+            return
+        if self.location.find("Pittsburgh") == -1:
+            self.location = self.location + " Pittburgh"
+        if self.location.find("PA") == -1:
+            self.location = self.location + ", PA"
+        self.location = self.location + " "
+        self.location.replace(" ", "%20")
+        apiKey = "Ai8o_qE0pCvSmu2Pz4PgXowMyetWm0J6B0Q_Q7yGJ-ZXQB1Hjc0pz6gXWYCcSk1R"
+        self.distances = dict()
+        for rest in self.recommendations:
+            restaurantLoc = str(rest.latitude) + "," + str(rest.longitude)
+            # CITATION: using Bing Maps REST Services to determine
+            # walking distances between the user's location and the restaurant
+            url = f"http://dev.virtualearth.net/REST/v1/Routes/Walking?wayPoint.1={self.location}&waypoint.2={restaurantLoc}&key={apiKey}&output=xml"
+            response = requests.get(url)
+            if response.status_code == 200:
+                xmlData = BeautifulSoup(response.text, "xml")
+                # Convert miles into kilometers
+                self.distances[rest] = float(xmlData.find("Route").TravelDistance.text) / 1.6
+            else:
+                # Assume about its a mile away
+                self.distances[rest] = 1
+        self.recommendations.sort(key=lambda rest: self.distances[rest])
 
     # Change the dimensions if the size of the canvas has changed
     def sizeChanged(self):
@@ -403,14 +521,16 @@ class HomeScreen(Mode):
     def drawSearch(self, canvas):
         # Clear what's under the header
         canvas.create_rectangle(0, 0, self.width, self.topHeight + self.margin * 2, fill="black")
-
         # Draw Search bar
         canvas.create_rectangle(self.margin, self.margin,\
             self.margin + self.searchBarWidth,\
             self.margin + self.topHeight, fill=self.backgroundColor)
-        if self.query is None or self.query == "":
+        if len(self.searchResults) == 0 and len(self.recommendations) == 0:
             canvas.create_text(self.margin + self.searchBarWidth / 2,\
                 self.margin + self.topHeight / 2, text="Search")
+        elif len(self.searchResults) == 0:
+            canvas.create_text(self.margin + self.searchBarWidth / 2,\
+                self.margin + self.topHeight / 2, text="Sort by walking distance")
         else:
             canvas.create_text(self.margin + self.searchBarWidth / 2,\
                 self.margin + self.topHeight / 2, text="All Restaurants")
@@ -451,20 +571,30 @@ class HomeScreen(Mode):
         canvas.create_rectangle(0, 0, self.width, self.app.height,\
             fill=self.backgroundColor)
 
-        if len(self.recommendations) == 0:
+        if len(self.recommendations) == 0 and len(self.searchResults) == 0:
             # Draw each restaurant card
             for i in range(len(self.restaurants)):
                 restaurant = self.restaurants[i]
+                restaurant.draw(canvas, i)
+        elif len(self.recommendations) == 0:
+            # Draw each search result card
+            for i in range(len(self.searchResults)):
+                restaurant = self.searchResults[i]
                 restaurant.draw(canvas, i)
         else:
             # Draw the recommendations card
             for i in range(len(self.recommendations)):
                 restaurant = self.recommendations[i]
                 restaurant.draw(canvas, i)
+                if restaurant in self.distances:
+                    dist = self.distances[restaurant]
+                    canvas.create_text((restaurant.x0+restaurant.x1)/2,\
+                        restaurant.y0 + (restaurant.y1-restaurant.y0)*3/4,\
+                        text="Distance: %0.3f miles" % dist)
 
         # Draw the header
         self.drawSearch(canvas)
         self.drawLogin(canvas)
 
 if __name__ == "__main__":
-    UserInterface(width=600, height=600)
+    CMUFoodie(width=600, height=600)
