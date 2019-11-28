@@ -7,7 +7,6 @@
 # Calls fuctions from userData.py to log users in and out
 # Uses classes from restaurant.py to store all the information scraped from the internet
 
-# TODO: fix spacing with reviews
 # TODO: Look into special characters in name interfering with reviews
 # TODO: Custom Text Box
 # TODO: Better UI
