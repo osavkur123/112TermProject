@@ -7,6 +7,13 @@
 # Calls fuctions from userData.py to log users in and out
 # Uses classes from restaurant.py to store all the information scraped from the internet
 
+# TODO: fix spacing with reviews
+# TODO: Look into special characters in name interfering with reviews
+# TODO: Custom Text Box
+# TODO: Better UI
+# TODO: Better Searching Algorithm
+# TODO: Add sorting by distance for search results
+
 # CITATION - using CMU's 15-112 graphics library to help with drawing to the canvas
 # From course notes: http://www.cs.cmu.edu/~112/notes/cmu_112_graphics.py
 from cmu_112_graphics import *
@@ -95,7 +102,7 @@ class RestaurantScreen(Mode):
             
             # Update the file if both are filled out
             if self.rating != "" and self.rating is not None and\
-                self.rating.isdigit() and self.comment != "" and self.comment is not None:
+                self.rating.isdigit() and 1 <= int(self.rating) <= 10 and self.comment != "" and self.comment is not None:
                 self.mainApp.user.reviews[self.restaurant.name] = {
                     "rating": int(self.rating), "comment": self.comment}
                 self.mainApp.user.updateFile()
@@ -108,14 +115,17 @@ class RestaurantScreen(Mode):
     # Takes in list of users and outputs formatted string
     def evenlySpaceRatings(self, toDisplayLst):
         lst = [[user.username + ":", "Rating: " + str(user.reviews[self.restaurant.name]["rating"]), "Comment: " + user.reviews[self.restaurant.name]["comment"]] for user in toDisplayLst]
-        maxName = maxRating = 0
+        maxSpace = 0
         for user in lst:
-            maxName = max(maxName, len(user[0]))
-            maxRating = max(maxRating, len(user[1]))
+            maxSpace = max(maxSpace, len(user[0]), len(user[1]))
+        maxSpace += 5
+        maxSpace = 4 * ((3 + maxSpace) // 4)
         output = ""
         for i in range(len(lst)):
             user = lst[i]
-            userStr = user[0] + " " * (maxName - len(user[0])) + "\t\t" + user[1] + " " * (maxRating - len(user[1])) + "\t\t" + user[2]
+            space1 = maxSpace - len(user[0])
+            space2 = maxSpace - len(user[1])
+            userStr = user[0] + " " * space1 + "\t" + user[1] + " " * space2 + "\t" + user[2]
             output = output + userStr
             if i != len(lst) - 1:
                 output = output + "\n"
@@ -124,7 +134,7 @@ class RestaurantScreen(Mode):
     # Gets what other users rated this restaurant
     # Draws this feedback above the rating buttons
     def drawOtherUsersRatings(self, canvas):
-        otherUsers = sorted(self.mainApp.otherUsers, key=lambda user: user.username, reverse=True)
+        otherUsers = sorted(self.mainApp.otherUsers, key=lambda user: user.username.lower(), reverse=True)
         toDisplayLst = []
         i = 0
         while len(toDisplayLst) < 5:
@@ -134,7 +144,7 @@ class RestaurantScreen(Mode):
             i += 1
         toDisplayLst.sort(key=lambda user:user.username)
         toDisplayStr = self.evenlySpaceRatings(toDisplayLst)
-        canvas.create_text(self.width/2, self.height*5/8, text=toDisplayStr)
+        canvas.create_text(self.width/2, self.height*5/8, text=toDisplayStr, font="Times 8")
    
     # Draw the buttons and the restaurant name and description
     def redrawAll(self, canvas):
@@ -156,6 +166,9 @@ class RestaurantScreen(Mode):
             elif not self.rating.isdigit():
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
                     (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER")
+            elif not 1 <= int(self.rating) <= 10:
+                canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
+                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER BETWEEN 1 AND 10")
             else:
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
                     (self.ratingButton[1]+self.ratingButton[3])/2, text=f"RATING: {self.rating}")
@@ -501,7 +514,6 @@ class HomeScreen(Mode):
                 # Assume about its a mile away
                 self.distances[rest] = 1
         self.recommendations.sort(key=lambda rest: self.distances[rest])
-
 
     # Change the dimensions if the size of the canvas has changed
     def sizeChanged(self):

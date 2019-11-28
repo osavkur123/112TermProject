@@ -117,7 +117,10 @@ class YelpRestaurant(Restaurant):
             self.description.append(info.a.text)
         self.description = ", ".join(self.description)
         geolocator = Nominatim(user_agent="CMU Foodie")
-        loc = geolocator.geocode(self.location, timeout=10)
+        try:
+            loc = geolocator.geocode(self.location, timeout=10)
+        except:
+            loc = None
         # Some locations are not possible to get latitude and longitude from
         # Skip these ones
         if loc is None:
