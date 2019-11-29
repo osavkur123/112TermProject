@@ -514,7 +514,7 @@ class HomeScreen(Mode):
         if len(similarity) == 0:
             return 50
         else:
-            return min(95, 100 * sum(similarity) / len(similarity) + 50 * zScore)
+            return min(95, 100 * statistics.mean(similarity) + 50 * zScore)
 
     # Search function that orders the restaurants based on their
     # relevance to the query - creates a new list self.searchResults
