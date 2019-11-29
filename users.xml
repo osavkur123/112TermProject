@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding = "UTF-8"?>
 <users>
+<user username="testUser" password="43742204479">
+	<review restaurant="THE UNDERGROUND">
+		<rating>10</rating>
+		<comment>Great!!!!!!!!</comment>
+	</review>
+	<review restaurant="BOWL LIFE">
+		<rating>9</rating>
+		<comment>Pretty Good</comment>
+	</review>
+	<review restaurant="CHICKLE">
+		<rating>8</rating>
+		<comment>Okay</comment>
+	</review>
+</user>
+<user username="test" password="38173122740">
+</user>
 <user username="other" password="83473832557">
 	<review restaurant="THE UNDERGROUND">
 		<rating>7</rating>
@@ -22,18 +38,6 @@
 		<comment>come</comment>
 	</review>
 </user>
-<user username="test" password="38173122740">
-</user>
-<user username="newUser" password="85346982040">
-	<review restaurant="GINGERS EXPRESS (PURNELL)">
-		<rating>7</rating>
-		<comment>Drive</comment>
-	</review>
-	<review restaurant="CARNEGIE MELLON CAFE">
-		<rating>5</rating>
-		<comment>Test</comment>
-	</review>
-</user>
 <user username="kj" password="1674244">
 	<review restaurant="EL GALLO DE ORO">
 		<rating>1</rating>
@@ -46,6 +50,16 @@
 	<review restaurant="AU BON PAIN AT SKIBO CAFE">
 		<rating>9</rating>
 		<comment>hi</comment>
+	</review>
+</user>
+<user username="newUser" password="85346982040">
+	<review restaurant="GINGERS EXPRESS (PURNELL)">
+		<rating>7</rating>
+		<comment>Drive</comment>
+	</review>
+	<review restaurant="CARNEGIE MELLON CAFE">
+		<rating>5</rating>
+		<comment>Test</comment>
 	</review>
 </user>
 <user username="theodardia" password="38173122740">
@@ -39902,20 +39916,6 @@
 	<review restaurant="ZEBRA LOUNGE">
 		<rating>8</rating>
 		<comment>Random</comment>
-	</review>
-</user>
-<user username="testUser" password="43742204479">
-	<review restaurant="THE UNDERGROUND">
-		<rating>10</rating>
-		<comment>Great!!!!!!!!</comment>
-	</review>
-	<review restaurant="BOWL LIFE">
-		<rating>9</rating>
-		<comment>Pretty Good</comment>
-	</review>
-	<review restaurant="CHICKLE">
-		<rating>8</rating>
-		<comment>Okay</comment>
 	</review>
 </user>
 </users>
