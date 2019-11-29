@@ -7,9 +7,8 @@
 # Calls fuctions from userData.py to log users in and out
 # Uses classes from restaurant.py to store all the information scraped from the internet
 
-# 3)TODO: Custom Text Box
-# 2)TODO: Better UI - scroll bar
-# 1)TODO: Better Searching Algorithm
+# 2)TODO: Custom Text Box
+# 1)TODO: Better UI - scroll bar
 
 # CITATION - using CMU's 15-112 graphics library to help with drawing to the canvas
 # From course notes: http://www.cs.cmu.edu/~112/notes/cmu_112_graphics.py
