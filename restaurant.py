@@ -110,7 +110,13 @@ class CMURestaurant(Restaurant):
         self.longitude = float(self.mapLink[self.mapLink.find(",") +\
             len(","):self.mapLink.find("/", self.mapLink.find(","))])
         self.x0, self.y0, self.x1, self.y1 = 0, 0, 0, 0
-        # TODO: Get menu and sepecials
+        newPageUrl = "https://apps.studentaffairs.cmu.edu/" + self.process(list(self.card.find("div", class_="links").children))[0]["href"]
+        parser = Restaurant.loadParser(newPageUrl)
+        if parser is None:
+            self.specials = None
+        else:
+            specials = parser.find_all("div", class_="specialItems")
+            self.specials = "".join(self.process(", ".join(item.div.ul.li.text.strip() for item in specials)))            
 
 # YelpRestaurant - Takes a card from yelp's website and
 # parses it to get the name, location, and description of a restaurant
@@ -144,15 +150,10 @@ class YelpRestaurant(Restaurant):
             self.latitude = loc.latitude
             self.longitude = loc.longitude
             self.useful = True
+        self.specials = ""
 
-# Testing to make sure the names of the restaurants in the user file match the name of the objects  
+# Testing to get the menu and specials
 if __name__ == "__main__":
-    restaurants = set()
-    with open("users.xml", "rb") as f:
-        parser = BeautifulSoup(f, "xml")
-        for user in parser.find_all("user"):
-            for rest in user.find_all("review"):
-                restaurants.add(rest["restaurant"])
     # Get the webpage with the info of all of the CMU Restaurants
     url = "https://apps.studentaffairs.cmu.edu/dining/conceptinfo/?page=listConcepts"
     parser = Restaurant.loadParser(url)
@@ -165,16 +166,6 @@ if __name__ == "__main__":
             # the website can't be loaded in the future
             f.write(parser.prettify())
     cards = parser.find_all("div", class_="card")
-    rests = [CMURestaurant(card, "app") for card in cards]
-    with open("yelpCache.html", "rb") as f:
-        parser = BeautifulSoup(f.read(), "html.parser")
-        cards = parser.find_all("li",\
-            class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")
+    rests = []
     for card in cards:
-        if card.find("h4") is not None:
-            rest = YelpRestaurant(card, "app")
-            rests.append(rest)
-    for rest in rests:
-        if rest.name not in restaurants:
-            print(rest)
-    print("Done")
+        rests.append(CMURestaurant(card, "app"))

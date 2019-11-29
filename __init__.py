@@ -400,7 +400,7 @@ class HomeScreen(Mode):
                     self.resetSearchAndRecommendations()
                 elif self.margin + self.topHeight / 2 + self.margin / 4 <= event.y <=\
                     self.margin + self.topHeight:
-                    if len(self.recommendations) == 0:
+                    if len(self.recommendations) == 0 and len(self.searchResults) == 0:
                         # call the recommendation function
                         self.resetSearchAndRecommendations()
                         self.getRecommendations()
@@ -528,10 +528,10 @@ class HomeScreen(Mode):
             ul = parser.find("ul", class_="css-1lc0dpe et6tpn80")
             if ul is not None:
                 for word in ul.children:
-                    synonyms.append(word.span.contents[0].text)
+                    synonyms.append(word.span.contents[0].text.upper())
         for rest in self.restaurants:
             for word in synonyms:
-                    scores[rest] = scores.get(rest, 0) + rest.name.upper().count(word) + rest.description.upper().count(word)
+                    scores[rest] = scores.get(rest, 0) + rest.name.upper().count(word) + rest.description.upper().count(word) + rest.specials.upper().count(word)
         self.searchResults = [rest for rest in scores.keys() if scores[rest] > 0]
         self.searchResults.sort(key=lambda rest:scores[rest], reverse=True)
 
