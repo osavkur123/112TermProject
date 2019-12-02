@@ -7,8 +7,8 @@
 # Calls fuctions from userData.py to log users in and out
 # Uses classes from restaurant.py to store all the information scraped from the internet
 
-# 1)TODO: Better UI - scroll bar
-# 2)TODO: Custom Text Box
+# 1)TODO: font color based on background
+# 2)TODO: scrollbar?
 
 # CITATION - using CMU's 15-112 graphics library to help with drawing to the canvas
 # From course notes: http://www.cs.cmu.edu/~112/notes/cmu_112_graphics.py
@@ -17,6 +17,11 @@ from cmu_112_graphics import *
 # CITATION - using tkinter as the graphics framework
 # Url: https://github.com/python/cpython/tree/3.8/Lib/tkinter
 from tkinter import *
+
+# CITATION - using PIL's ImageTk class to display images on the canvas 
+# and PIL's ImageEnhance class to reduce the brightness of images
+# From https://pillow.readthedocs.io/en/3.1.x/index.html
+from PIL import ImageTk, ImageEnhance
 
 # CITATION - using BeautifulSoup to parse webpages
 # From https://pypi.org/project/beautifulsoup4/
@@ -152,6 +157,12 @@ class RestaurantScreen(Mode):
    
     # Draw the buttons and the restaurant name and description
     def redrawAll(self, canvas):
+        img = self.restaurant.image
+        imgWidth, imgHeight = img.size
+        scale = min(self.width/imgWidth, self.height/imgHeight)
+        img = img.resize((int(imgWidth * scale), int(imgHeight * scale)))
+        img = ImageEnhance.Brightness(img).enhance(0.5)
+        canvas.create_image(self.width/2, self.height/2, image=ImageTk.PhotoImage(img))
         canvas.create_rectangle(*self.exitButton)
         canvas.create_text((self.exitButton[0]+self.exitButton[2])/2,\
             (self.exitButton[1]+self.exitButton[3])/2, text="EXIT", font="Times")
@@ -275,7 +286,7 @@ class HomeScreen(Mode):
     def appStarted(self):
         self.getRestaurantInfo()
         self.scrollY = 0
-        self.backgroundColor = "white"
+        self.backgroundColor = "light cyan"
         self.user = None
         self.otherUsers = []
         self.query = None
