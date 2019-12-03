@@ -285,15 +285,15 @@ class HomeScreen(Mode):
     def appStarted(self):
         self.getRestaurantInfo()
         self.scrollY = 0
-        self.backgroundColor = "light cyan"
+        self.backgroundColor = "white"
         self.user = None
         self.otherUsers = []
         self.query = None
         self.location = None
         self.resetSearchAndRecommendations()
         self.getDimensions()
-        # CITATION: using image from https://i.pinimg.com/originals/cf/d3/2e/cfd32ecb5df69b18dad171345dd8c18a.jpg as background
-        imgContent = requests.get("https://i.pinimg.com/originals/cf/d3/2e/cfd32ecb5df69b18dad171345dd8c18a.jpg").content
+        # CITATION: using image from https://i.pinimg.com/originals/ab/1a/72/ab1a72b33ba99744da40f2932f78fa39.jpg as background
+        imgContent = requests.get("https://i.pinimg.com/originals/ab/1a/72/ab1a72b33ba99744da40f2932f78fa39.jpg").content
         self.backgroundImg = Image.open(BytesIO(imgContent))
     
     def getRestaurantInfo(self):
@@ -525,7 +525,7 @@ class HomeScreen(Mode):
         if len(similarity) == 0:
             return 50
         else:
-            return min(95, 100 * statistics.mean(similarity) + 50 * zScore)
+            return max(1, min(95, 100 * statistics.mean(similarity) + 50 * zScore))
 
     # Search function that orders the restaurants based on their
     # relevance to the query - creates a new list self.searchResults
@@ -647,12 +647,14 @@ class HomeScreen(Mode):
 
     # Draw all of the info to the canvas - background, restaurant, and header
     def redrawAll(self, canvas):
-        canvas.create_rectangle(0, 0, self.width, self.height, fill=self.backgroundColor)
-        # img = self.backgroundImg
-        # imgWidth, imgHeight = img.size
-        # scale = max(self.width/imgWidth, self.height/imgHeight)
-        # img = img.resize((int(imgWidth * scale), int(imgHeight * scale)))
-        # canvas.create_image(self.width/2, self.height/2, image=ImageTk.PhotoImage(img))
+        img = self.backgroundImg
+        imgWidth, imgHeight = img.size
+        scale = max(self.width/imgWidth, self.height/imgHeight)
+        img = img.resize((int(imgWidth * scale), int(imgHeight * scale)))
+        imgWidth, imgHeight = img.size
+        # Moving the image with scrollY
+        imgY = imgHeight/2 + self.topHeight + self.margin*2 + (self.height - imgHeight - self.topHeight - self.margin*2) * self.scrollY / self.maxScrollY
+        canvas.create_image(self.width/2, imgY, image=ImageTk.PhotoImage(img))
 
         if len(self.recommendations) == 0 and len(self.searchResults) == 0:
             # Draw each restaurant card
