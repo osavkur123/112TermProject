@@ -21,6 +21,10 @@
 		<rating>6</rating>
 		<comment>come</comment>
 	</review>
+	<review restaurant="BACK BAR GRILL">
+		<rating>5</rating>
+		<comment>okay</comment>
+	</review>
 </user>
 <user username="testUser" password="43742204479">
 	<review restaurant="THE UNDERGROUND">
