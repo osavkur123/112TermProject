@@ -202,6 +202,7 @@ class UserCreationScreen(Mode):
         self.username = ""
         self.pass1 = ""
         self.pass2 = ""
+        self.backgroundColor = self.app.mainScreen.backgroundColor
     
     # Determine positions of boxes on the canvas
     def getDimensions(self):
@@ -258,6 +259,7 @@ class UserCreationScreen(Mode):
 
     # Display the boxes and text for the user
     def redrawAll(self, canvas):
+        canvas.create_rectangle(0, 0, self.width, self.height, fill=self.backgroundColor)
         canvas.create_rectangle(*self.usernameBox)
         if self.username is None or self.username == "":
             UserCreationScreen.drawTextWithinBox("Enter Username", self.usernameBox, canvas)
@@ -283,16 +285,16 @@ class HomeScreen(Mode):
     def appStarted(self):
         self.getRestaurantInfo()
         self.scrollY = 0
-        self.backgroundColor = "light cyan"
+        self.backgroundColor = "cyan"
         self.user = None
         self.otherUsers = []
         self.query = None
         self.location = None
         self.resetSearchAndRecommendations()
         self.getDimensions()
-        # # CITATION: using image from https://i.pinimg.com/originals/ab/1a/72/ab1a72b33ba99744da40f2932f78fa39.jpg as background
-        # imgContent = requests.get("https://i.pinimg.com/originals/ab/1a/72/ab1a72b33ba99744da40f2932f78fa39.jpg").content
-        # self.backgroundImg = Image.open(BytesIO(imgContent))
+        # CITATION: using image from https://png.pngtree.com/thumb_back/fw800/background/20190223/ourmid/pngtree-solid-color-matte-background-blue-gradient-wind-background-color-mattesolid-backgroundblue-image_84871.jpg as background
+        imgContent = requests.get("https://png.pngtree.com/thumb_back/fw800/background/20190223/ourmid/pngtree-solid-color-matte-background-blue-gradient-wind-background-color-mattesolid-backgroundblue-image_84871.jpg").content
+        self.backgroundImg = Image.open(BytesIO(imgContent))
     
     def getRestaurantInfo(self):
         # Get the webpage with the info of all of the CMU Restaurants
@@ -598,7 +600,7 @@ class HomeScreen(Mode):
             self.margin, self.width - self.margin,\
             self.margin + self.topHeight / 2 - self.margin/4, fill=self.backgroundColor)
         canvas.create_rectangle(self.width - self.margin - self.loginWidth,\
-            self.margin + self.topHeight / 2 + self.margin/4, self.width - self.margin,\
+            self.margin + self.topHeight / 2 + self.margin / 4, self.width - self.margin,\
             self.margin + self.topHeight, fill=self.backgroundColor)        
 
         if self.user is None:
@@ -631,29 +633,32 @@ class HomeScreen(Mode):
     def drawDistance(self, rest, canvas):
         if rest in self.distances:
             dist = self.distances[rest]
-            canvas.create_text((rest.x0+rest.x1)/2,\
-                rest.y0 + (rest.y1-rest.y0)*3/4,\
+            canvas.create_text((rest.x0 + rest.x1) / 2,\
+                rest.y0 + (rest.y1 - rest.y0) * 3 / 4,\
                 text="Distance: %0.3f miles" % dist, font="Times 10")
     
     # Draws how confident a recommendation is
     def drawMatch(self, rest, canvas):
         if rest in self.matches:
             match = self.matches[rest]
-            canvas.create_text((rest.x0+rest.x1)/2,\
-                rest.y0 + (rest.y1-rest.y0)/4,\
+            canvas.create_text((rest.x0 + rest.x1) / 2,\
+                rest.y0 + (rest.y1 - rest.y0) / 4,\
                 text=("%0.f%% Match" % match), font="Times 10")
 
     # Draw all of the info to the canvas - background, restaurant, and header
     def redrawAll(self, canvas):
-        canvas.create_rectangle(0, 0, self.width, self.height, fill=self.backgroundColor)
-        # img = self.backgroundImg
-        # imgWidth, imgHeight = img.size
-        # scale = max(self.width/imgWidth, self.height/imgHeight)
-        # img = img.resize((int(imgWidth * scale), int(imgHeight * scale)))
-        # imgWidth, imgHeight = img.size
-        # # Moving the image with scrollY
-        # imgY = imgHeight/2 + self.topHeight + self.margin*2 + (self.height - imgHeight - self.topHeight - self.margin*2) * self.scrollY / self.maxScrollY
-        # canvas.create_image(self.width/2, imgY, image=ImageTk.PhotoImage(img))
+        img = self.backgroundImg
+        imgWidth, imgHeight = img.size
+        scale = max(self.width / imgWidth, self.height / imgHeight)
+        img = img.resize((int(imgWidth * scale), int(imgHeight * scale)))
+        img = ImageEnhance.Brightness(img).enhance(1.5)
+        imgWidth, imgHeight = img.size
+        # Moving the image with scrollY
+        if self.maxScrollY == 0:
+            imgY = imgHeight / 2 + self.topHeight + self.margin * 2
+        else:
+            imgY = imgHeight / 2 + self.topHeight + self.margin * 2 + (self.height - imgHeight - self.topHeight - self.margin * 2) * self.scrollY / self.maxScrollY
+        canvas.create_image(self.width/2, imgY, image=ImageTk.PhotoImage(img))
 
         if len(self.recommendations) == 0 and len(self.searchResults) == 0:
             # Draw each restaurant card

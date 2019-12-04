@@ -1,5 +1,57 @@
 <?xml version="1.0" encoding = "UTF-8"?>
 <users>
+<user username="other" password="83473832557">
+	<review restaurant="THE UNDERGROUND">
+		<rating>7</rating>
+		<comment>No Comment</comment>
+	</review>
+	<review restaurant="INOODLE">
+		<rating>5</rating>
+		<comment>No Comment</comment>
+	</review>
+	<review restaurant="THE EXCHANGE">
+		<rating>9</rating>
+		<comment>Fairly good</comment>
+	</review>
+	<review restaurant="AU BON PAIN AT SKIBO CAFE">
+		<rating>6</rating>
+		<comment>Good</comment>
+	</review>
+	<review restaurant="FOOD FOR THOUGHT DELI">
+		<rating>6</rating>
+		<comment>come</comment>
+	</review>
+	<review restaurant="BACK BAR GRILL">
+		<rating>5</rating>
+		<comment>okay</comment>
+	</review>
+	<review restaurant="NOURISH">
+		<rating>7</rating>
+		<comment>good</comment>
+	</review>
+</user>
+<user username="ob" password="47370824159">
+	<review restaurant="EL GALLO DE ORO">
+		<rating>1</rating>
+		<comment>garbage</comment>
+	</review>
+</user>
+<user username="test" password="38173122740">
+</user>
+<user username="theodardia" password="38173122740">
+	<review restaurant="BOAR'S HEAD GRAND">
+		<rating>5</rating>
+		<comment>Decent</comment>
+	</review>
+	<review restaurant="ORIENT EXPRESS">
+		<rating>9</rating>
+		<comment>Good food. Quick. Wish they took DineX</comment>
+	</review>
+	<review restaurant="SUBWAY RESTAURANTS">
+		<rating>2</rating>
+		<comment>Gave my friend food poisoning. Would not recommend. Quizinos is the move.</comment>
+	</review>
+</user>
 <user username="kj" password="1674244">
 	<review restaurant="EL GALLO DE ORO">
 		<rating>1</rating>
@@ -34,36 +86,6 @@
 		<comment>gud</comment>
 	</review>
 </user>
-<user username="other" password="83473832557">
-	<review restaurant="THE UNDERGROUND">
-		<rating>7</rating>
-		<comment>No Comment</comment>
-	</review>
-	<review restaurant="INOODLE">
-		<rating>5</rating>
-		<comment>No Comment</comment>
-	</review>
-	<review restaurant="THE EXCHANGE">
-		<rating>9</rating>
-		<comment>Fairly good</comment>
-	</review>
-	<review restaurant="AU BON PAIN AT SKIBO CAFE">
-		<rating>6</rating>
-		<comment>Good</comment>
-	</review>
-	<review restaurant="FOOD FOR THOUGHT DELI">
-		<rating>6</rating>
-		<comment>come</comment>
-	</review>
-	<review restaurant="BACK BAR GRILL">
-		<rating>5</rating>
-		<comment>okay</comment>
-	</review>
-	<review restaurant="NOURISH">
-		<rating>7</rating>
-		<comment>good</comment>
-	</review>
-</user>
 <user username="testUser" password="43742204479">
 	<review restaurant="THE UNDERGROUND">
 		<rating>10</rating>
@@ -78,8 +100,6 @@
 		<comment>Okay</comment>
 	</review>
 </user>
-<user username="test" password="38173122740">
-</user>
 <user username="newUser" password="85346982040">
 	<review restaurant="GINGERS EXPRESS (PURNELL)">
 		<rating>7</rating>
@@ -88,16 +108,6 @@
 	<review restaurant="CARNEGIE MELLON CAFE">
 		<rating>5</rating>
 		<comment>Test</comment>
-	</review>
-</user>
-<user username="theodardia" password="38173122740">
-	<review restaurant="BOAR'S HEAD GRAND">
-		<rating>5</rating>
-		<comment>Decent</comment>
-	</review>
-	<review restaurant="ORIENT EXPRESS">
-		<rating>9</rating>
-		<comment>Good food. Quick. Wish they took DineX</comment>
 	</review>
 </user>
 <user username="Geelbort" password="92283486891">
