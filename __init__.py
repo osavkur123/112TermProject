@@ -7,8 +7,6 @@
 # Calls fuctions from userData.py to log users in and out
 # Uses classes from restaurant.py to store all the information scraped from the internet
 
-# TODO: scrollbar?
-
 # CITATION - using CMU's 15-112 graphics library to help with drawing to the canvas
 # From course notes: http://www.cs.cmu.edu/~112/notes/cmu_112_graphics.py
 from cmu_112_graphics import *
@@ -179,7 +177,7 @@ class RestaurantScreen(Mode):
                     (self.ratingButton[1]+self.ratingButton[3])/2, text="RATE", font="Times", fill="white")
             elif not self.rating.isdigit():
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER", font="Times", fill="white")
+                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER AN INTEGER", font="Times", fill="white")
             elif not 1 <= int(self.rating) <= 10:
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
                     (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER BETWEEN 1 AND 10", font="Times", fill="white")
@@ -285,16 +283,16 @@ class HomeScreen(Mode):
     def appStarted(self):
         self.getRestaurantInfo()
         self.scrollY = 0
-        self.backgroundColor = "white"
+        self.backgroundColor = "light cyan"
         self.user = None
         self.otherUsers = []
         self.query = None
         self.location = None
         self.resetSearchAndRecommendations()
         self.getDimensions()
-        # CITATION: using image from https://i.pinimg.com/originals/ab/1a/72/ab1a72b33ba99744da40f2932f78fa39.jpg as background
-        imgContent = requests.get("https://i.pinimg.com/originals/ab/1a/72/ab1a72b33ba99744da40f2932f78fa39.jpg").content
-        self.backgroundImg = Image.open(BytesIO(imgContent))
+        # # CITATION: using image from https://i.pinimg.com/originals/ab/1a/72/ab1a72b33ba99744da40f2932f78fa39.jpg as background
+        # imgContent = requests.get("https://i.pinimg.com/originals/ab/1a/72/ab1a72b33ba99744da40f2932f78fa39.jpg").content
+        # self.backgroundImg = Image.open(BytesIO(imgContent))
     
     def getRestaurantInfo(self):
         # Get the webpage with the info of all of the CMU Restaurants
@@ -647,14 +645,15 @@ class HomeScreen(Mode):
 
     # Draw all of the info to the canvas - background, restaurant, and header
     def redrawAll(self, canvas):
-        img = self.backgroundImg
-        imgWidth, imgHeight = img.size
-        scale = max(self.width/imgWidth, self.height/imgHeight)
-        img = img.resize((int(imgWidth * scale), int(imgHeight * scale)))
-        imgWidth, imgHeight = img.size
-        # Moving the image with scrollY
-        imgY = imgHeight/2 + self.topHeight + self.margin*2 + (self.height - imgHeight - self.topHeight - self.margin*2) * self.scrollY / self.maxScrollY
-        canvas.create_image(self.width/2, imgY, image=ImageTk.PhotoImage(img))
+        canvas.create_rectangle(0, 0, self.width, self.height, fill=self.backgroundColor)
+        # img = self.backgroundImg
+        # imgWidth, imgHeight = img.size
+        # scale = max(self.width/imgWidth, self.height/imgHeight)
+        # img = img.resize((int(imgWidth * scale), int(imgHeight * scale)))
+        # imgWidth, imgHeight = img.size
+        # # Moving the image with scrollY
+        # imgY = imgHeight/2 + self.topHeight + self.margin*2 + (self.height - imgHeight - self.topHeight - self.margin*2) * self.scrollY / self.maxScrollY
+        # canvas.create_image(self.width/2, imgY, image=ImageTk.PhotoImage(img))
 
         if len(self.recommendations) == 0 and len(self.searchResults) == 0:
             # Draw each restaurant card
