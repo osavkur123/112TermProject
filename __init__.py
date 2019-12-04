@@ -651,7 +651,7 @@ class HomeScreen(Mode):
         imgWidth, imgHeight = img.size
         scale = max(self.width / imgWidth, self.height / imgHeight)
         img = img.resize((int(imgWidth * scale), int(imgHeight * scale)))
-        img = ImageEnhance.Brightness(img).enhance(1.5)
+        img = ImageEnhance.Brightness(img).enhance(1.7)
         imgWidth, imgHeight = img.size
         # Moving the image with scrollY
         if self.maxScrollY == 0:

@@ -29,6 +29,10 @@
 		<rating>7</rating>
 		<comment>good</comment>
 	</review>
+	<review restaurant="CUCINA">
+		<rating>5</rating>
+		<comment>okay</comment>
+	</review>
 </user>
 <user username="ob" password="47370824159">
 	<review restaurant="EL GALLO DE ORO">
