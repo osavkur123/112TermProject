@@ -3,12 +3,9 @@
 # 112 Term Project
 
 # The main file, __init__.py
-# Runs the user interface and handles the recommendation algorithm
+# Runs the user interface and handles the recommendation and search algorithms
 # Calls fuctions from userData.py to log users in and out
 # Uses classes from restaurant.py to store all the information scraped from the internet
-
-# 2)TODO: Custom Text Box
-# 1)TODO: Better UI - scroll bar
 
 # CITATION - using CMU's 15-112 graphics library to help with drawing to the canvas
 # From course notes: http://www.cs.cmu.edu/~112/notes/cmu_112_graphics.py
@@ -17,6 +14,11 @@ from cmu_112_graphics import *
 # CITATION - using tkinter as the graphics framework
 # Url: https://github.com/python/cpython/tree/3.8/Lib/tkinter
 from tkinter import *
+
+# CITATION - using PIL's ImageTk class to display images on the canvas 
+# and PIL's ImageEnhance class to reduce the brightness of images
+# From https://pillow.readthedocs.io/en/3.1.x/index.html
+from PIL import Image, ImageTk, ImageEnhance
 
 # CITATION - using BeautifulSoup to parse webpages
 # From https://pypi.org/project/beautifulsoup4/
@@ -148,44 +150,50 @@ class RestaurantScreen(Mode):
             i += 1
         toDisplayLst.sort(key=lambda user:user.username)
         toDisplayStr = self.evenlySpaceRatings(toDisplayLst)
-        canvas.create_text(self.width/2, self.height*5/8, text=toDisplayStr, font="Times 12")
+        canvas.create_text(self.width/2, self.height*5/8, text=toDisplayStr, font="Times 12", fill="white")
    
     # Draw the buttons and the restaurant name and description
     def redrawAll(self, canvas):
-        canvas.create_rectangle(*self.exitButton)
+        img = self.restaurant.image
+        imgWidth, imgHeight = img.size
+        scale = max(self.width/imgWidth, self.height/imgHeight)
+        img = img.resize((int(imgWidth * scale), int(imgHeight * scale)))
+        img = ImageEnhance.Brightness(img).enhance(0.5)
+        canvas.create_image(self.width/2, self.height/2, image=ImageTk.PhotoImage(img))
+        canvas.create_rectangle(*self.exitButton, outline="white")
         canvas.create_text((self.exitButton[0]+self.exitButton[2])/2,\
-            (self.exitButton[1]+self.exitButton[3])/2, text="EXIT", font="Times")
+            (self.exitButton[1]+self.exitButton[3])/2, text="EXIT", font="Times", fill="white")
         canvas.create_text(self.width/2, self.app.height/4,\
-            text=self.restaurant.name, font="Times")
+            text=self.restaurant.name, font="Times", fill="white")
         canvas.create_text(self.width/2, self.app.height/2,\
-            text=self.restaurant.description, font="Times 10")
+            text=self.restaurant.description, font="Times 10", fill="white")
         if self.mainApp.user is not None:
             canvas.create_text(self.width/2, self.app.height/10,\
-                text="Welcome " + self.mainApp.user.username, font="Times")
+                text="Welcome " + self.mainApp.user.username, font="Times", fill="white")
             self.drawOtherUsersRatings(canvas)
-            canvas.create_rectangle(*self.ratingButton)
+            canvas.create_rectangle(*self.ratingButton, outline="white")
             if self.rating == "" or self.rating is None:
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text="RATE", font="Times")
+                    (self.ratingButton[1]+self.ratingButton[3])/2, text="RATE", font="Times", fill="white")
             elif not self.rating.isdigit():
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER", font="Times")
+                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER AN INTEGER", font="Times", fill="white")
             elif not 1 <= int(self.rating) <= 10:
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER BETWEEN 1 AND 10", font="Times")
+                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER BETWEEN 1 AND 10", font="Times", fill="white")
             else:
                 canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text=f"RATING: {self.rating}", font="Times")
-            canvas.create_rectangle(*self.commentButton)
+                    (self.ratingButton[1]+self.ratingButton[3])/2, text=f"RATING: {self.rating}", font="Times", fill="white")
+            canvas.create_rectangle(*self.commentButton, outline="white")
             if self.comment == "" or self.comment is None:
                 canvas.create_text((self.commentButton[0]+self.commentButton[2])/2,\
-                    (self.commentButton[1]+self.commentButton[3])/2, text="COMMENT", font="Times")
+                    (self.commentButton[1]+self.commentButton[3])/2, text="COMMENT", font="Times", fill="white")
             else:
                 canvas.create_text((self.commentButton[0]+self.commentButton[2])/2,\
-                    (self.commentButton[1]+self.commentButton[3])/2, text=f"COMMENT: {self.comment}", font="Times")
+                    (self.commentButton[1]+self.commentButton[3])/2, text=f"COMMENT: {self.comment}", font="Times", fill="white")
         else:
             canvas.create_text(self.width/2, self.app.height/10,\
-                text=f"Sign In to see ratings and rate {self.restaurant.name}", font="Times")
+                text=f"Sign In to see ratings and rate {self.restaurant.name}", font="Times", fill="white")
 
 # Animation that handles the user creating a profile
 class UserCreationScreen(Mode):
@@ -194,6 +202,7 @@ class UserCreationScreen(Mode):
         self.username = ""
         self.pass1 = ""
         self.pass2 = ""
+        self.backgroundColor = self.app.mainScreen.backgroundColor
     
     # Determine positions of boxes on the canvas
     def getDimensions(self):
@@ -250,6 +259,7 @@ class UserCreationScreen(Mode):
 
     # Display the boxes and text for the user
     def redrawAll(self, canvas):
+        canvas.create_rectangle(0, 0, self.width, self.height, fill=self.backgroundColor)
         canvas.create_rectangle(*self.usernameBox)
         if self.username is None or self.username == "":
             UserCreationScreen.drawTextWithinBox("Enter Username", self.usernameBox, canvas)
@@ -275,13 +285,16 @@ class HomeScreen(Mode):
     def appStarted(self):
         self.getRestaurantInfo()
         self.scrollY = 0
-        self.backgroundColor = "white"
+        self.backgroundColor = "cyan"
         self.user = None
         self.otherUsers = []
         self.query = None
         self.location = None
         self.resetSearchAndRecommendations()
         self.getDimensions()
+        # CITATION: using image from https://png.pngtree.com/thumb_back/fw800/background/20190223/ourmid/pngtree-solid-color-matte-background-blue-gradient-wind-background-color-mattesolid-backgroundblue-image_84871.jpg as background
+        imgContent = requests.get("https://png.pngtree.com/thumb_back/fw800/background/20190223/ourmid/pngtree-solid-color-matte-background-blue-gradient-wind-background-color-mattesolid-backgroundblue-image_84871.jpg").content
+        self.backgroundImg = Image.open(BytesIO(imgContent))
     
     def getRestaurantInfo(self):
         # Get the webpage with the info of all of the CMU Restaurants
@@ -512,7 +525,7 @@ class HomeScreen(Mode):
         if len(similarity) == 0:
             return 50
         else:
-            return min(95, 100 * statistics.mean(similarity) + 50 * zScore)
+            return max(1, min(95, 100 * statistics.mean(similarity) + 50 * zScore))
 
     # Search function that orders the restaurants based on their
     # relevance to the query - creates a new list self.searchResults
@@ -587,7 +600,7 @@ class HomeScreen(Mode):
             self.margin, self.width - self.margin,\
             self.margin + self.topHeight / 2 - self.margin/4, fill=self.backgroundColor)
         canvas.create_rectangle(self.width - self.margin - self.loginWidth,\
-            self.margin + self.topHeight / 2 + self.margin/4, self.width - self.margin,\
+            self.margin + self.topHeight / 2 + self.margin / 4, self.width - self.margin,\
             self.margin + self.topHeight, fill=self.backgroundColor)        
 
         if self.user is None:
@@ -620,22 +633,32 @@ class HomeScreen(Mode):
     def drawDistance(self, rest, canvas):
         if rest in self.distances:
             dist = self.distances[rest]
-            canvas.create_text((rest.x0+rest.x1)/2,\
-                rest.y0 + (rest.y1-rest.y0)*3/4,\
+            canvas.create_text((rest.x0 + rest.x1) / 2,\
+                rest.y0 + (rest.y1 - rest.y0) * 3 / 4,\
                 text="Distance: %0.3f miles" % dist, font="Times 10")
     
     # Draws how confident a recommendation is
     def drawMatch(self, rest, canvas):
         if rest in self.matches:
             match = self.matches[rest]
-            canvas.create_text((rest.x0+rest.x1)/2,\
-                rest.y0 + (rest.y1-rest.y0)/4,\
+            canvas.create_text((rest.x0 + rest.x1) / 2,\
+                rest.y0 + (rest.y1 - rest.y0) / 4,\
                 text=("%0.f%% Match" % match), font="Times 10")
 
     # Draw all of the info to the canvas - background, restaurant, and header
     def redrawAll(self, canvas):
-        canvas.create_rectangle(0, 0, self.width, self.app.height,\
-            fill=self.backgroundColor)
+        img = self.backgroundImg
+        imgWidth, imgHeight = img.size
+        scale = max(self.width / imgWidth, self.height / imgHeight)
+        img = img.resize((int(imgWidth * scale), int(imgHeight * scale)))
+        img = ImageEnhance.Brightness(img).enhance(1.7)
+        imgWidth, imgHeight = img.size
+        # Moving the image with scrollY
+        if self.maxScrollY == 0:
+            imgY = imgHeight / 2 + self.topHeight + self.margin * 2
+        else:
+            imgY = imgHeight / 2 + self.topHeight + self.margin * 2 + (self.height - imgHeight - self.topHeight - self.margin * 2) * self.scrollY / self.maxScrollY
+        canvas.create_image(self.width/2, imgY, image=ImageTk.PhotoImage(img))
 
         if len(self.recommendations) == 0 and len(self.searchResults) == 0:
             # Draw each restaurant card

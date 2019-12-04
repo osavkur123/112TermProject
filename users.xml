@@ -21,6 +21,74 @@
 		<rating>6</rating>
 		<comment>come</comment>
 	</review>
+	<review restaurant="BACK BAR GRILL">
+		<rating>5</rating>
+		<comment>okay</comment>
+	</review>
+	<review restaurant="NOURISH">
+		<rating>7</rating>
+		<comment>good</comment>
+	</review>
+	<review restaurant="CUCINA">
+		<rating>5</rating>
+		<comment>okay</comment>
+	</review>
+</user>
+<user username="ob" password="47370824159">
+	<review restaurant="EL GALLO DE ORO">
+		<rating>1</rating>
+		<comment>garbage</comment>
+	</review>
+</user>
+<user username="test" password="38173122740">
+</user>
+<user username="theodardia" password="38173122740">
+	<review restaurant="BOAR'S HEAD GRAND">
+		<rating>5</rating>
+		<comment>Decent</comment>
+	</review>
+	<review restaurant="ORIENT EXPRESS">
+		<rating>9</rating>
+		<comment>Good food. Quick. Wish they took DineX</comment>
+	</review>
+	<review restaurant="SUBWAY RESTAURANTS">
+		<rating>2</rating>
+		<comment>Gave my friend food poisoning. Would not recommend. Quizinos is the move.</comment>
+	</review>
+</user>
+<user username="kj" password="1674244">
+	<review restaurant="EL GALLO DE ORO">
+		<rating>1</rating>
+		<comment>o</comment>
+	</review>
+	<review restaurant="LITTLE NIPPER'S PIZZA II">
+		<rating>7</rating>
+		<comment>hodog</comment>
+	</review>
+	<review restaurant="AU BON PAIN AT SKIBO CAFE">
+		<rating>9</rating>
+		<comment>hi</comment>
+	</review>
+	<review restaurant="BUTTERJOINT">
+		<rating>9</rating>
+		<comment>i like butter</comment>
+	</review>
+	<review restaurant="BOAR'S HEAD GRAND">
+		<rating>10</rating>
+		<comment>i like lechon</comment>
+	</review>
+	<review restaurant="CHICKLE">
+		<rating>1</rating>
+		<comment>hi gilbort</comment>
+	</review>
+	<review restaurant="TW KITCHEN">
+		<rating>1</rating>
+		<comment>i dont liek</comment>
+	</review>
+	<review restaurant="CHICK-FIL-A">
+		<rating>10</rating>
+		<comment>gud</comment>
+	</review>
 </user>
 <user username="testUser" password="43742204479">
 	<review restaurant="THE UNDERGROUND">
@@ -36,22 +104,6 @@
 		<comment>Okay</comment>
 	</review>
 </user>
-<user username="test" password="38173122740">
-</user>
-<user username="kj" password="1674244">
-	<review restaurant="EL GALLO DE ORO">
-		<rating>1</rating>
-		<comment>o</comment>
-	</review>
-	<review restaurant="LITTLE NIPPER'S PIZZA II">
-		<rating>7</rating>
-		<comment>hodog</comment>
-	</review>
-	<review restaurant="AU BON PAIN AT SKIBO CAFE">
-		<rating>9</rating>
-		<comment>hi</comment>
-	</review>
-</user>
 <user username="newUser" password="85346982040">
 	<review restaurant="GINGERS EXPRESS (PURNELL)">
 		<rating>7</rating>
@@ -60,16 +112,6 @@
 	<review restaurant="CARNEGIE MELLON CAFE">
 		<rating>5</rating>
 		<comment>Test</comment>
-	</review>
-</user>
-<user username="theodardia" password="38173122740">
-	<review restaurant="BOAR'S HEAD GRAND">
-		<rating>5</rating>
-		<comment>Decent</comment>
-	</review>
-	<review restaurant="ORIENT EXPRESS">
-		<rating>9</rating>
-		<comment>Good food. Quick. Wish they took DineX</comment>
 	</review>
 </user>
 <user username="Geelbort" password="92283486891">

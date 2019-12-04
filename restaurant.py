@@ -5,6 +5,14 @@
 # restaurant.py - has Restaurant class with CMURestaurant and YelpRestaurant as subclasses
 # The restaurant classes contain all the information about a restaurant by webscraping the information
 
+# CITATION - using tkinter as the graphics framework
+# From https://github.com/python/cpython/tree/3.8/Lib/tkinter
+from tkinter import *
+
+# CITATION - using PIL's image class to display images on the canvas
+# From https://pillow.readthedocs.io/en/3.1.x/index.html
+from PIL import Image
+
 # CITATION - using requests to load webpages
 # From https://pypi.org/project/requests/
 import requests
@@ -16,6 +24,9 @@ from bs4 import BeautifulSoup
 # CITATION - using Nominatim to convert addresses into latitude and longitude
 # From https://pypi.org/project/geopy/
 from geopy.geocoders import Nominatim
+
+# Importing Python's BytesIO class
+from io import BytesIO
 
 # Restaurant class - has helper functions that both
 # CMURestaurant and YelpRestaurant need
@@ -116,7 +127,11 @@ class CMURestaurant(Restaurant):
             self.specials = None
         else:
             specials = parser.find_all("div", class_="specialItems")
-            self.specials = "".join(self.process(", ".join(item.div.ul.li.text.strip() for item in specials)))            
+            self.specials = "".join(self.process(", ".join(item.div.ul.li.text.strip() for item in specials)))
+        # CITATION: Using the image from each restaurant's website as the background for the cards
+        imageUrl = "https://apps.studentaffairs.cmu.edu" + parser.find("div", class_="conceptImage").img["src"]
+        imageContent = requests.get(imageUrl).content
+        self.image = Image.open(BytesIO(imageContent))
 
 # YelpRestaurant - Takes a card from yelp's website and
 # parses it to get the name, location, and description of a restaurant
@@ -151,6 +166,10 @@ class YelpRestaurant(Restaurant):
             self.longitude = loc.longitude
             self.useful = True
         self.specials = ""
+        # CITATION - Using image from Yelp as background
+        imageUrl = self.card.find("div", class_="lemon--div__373c0__1mboc on-click-container border-color--default__373c0__3-ifU").a.img["src"]        
+        imageContent = requests.get(imageUrl).content
+        self.image = Image.open(BytesIO(imageContent))
 
 # Testing to get the menu and specials
 if __name__ == "__main__":
