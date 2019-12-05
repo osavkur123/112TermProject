@@ -112,7 +112,7 @@ class CMURestaurant(Restaurant):
         name = self.card.find("h3", class_="name detailsLink").text.strip().upper()
         self.name = self.fixUnicode(name)
         hoursLoc = self.process(list(self.card.find("div", class_="hoursLocations").children))
-        self.location = self.process(list(hoursLoc[0].children))[1].text.strip()
+        self.location = self.process(list(hoursLoc[0].children))[1].text.strip() + ", CMU's Campus"
         self.hours = " ".join(hoursLoc[1].text.split())[15:]
         self.description = self.card.find("div", class_="description").text.strip()
         self.mapLink = self.process(list(hoursLoc[0].children))[1]["href"]
@@ -144,7 +144,7 @@ class YelpRestaurant(Restaurant):
         name = self.card.find("h4", class_="lemon--h4__373c0__1yd__ heading" +\
             "--h4__373c0__27bDo alternate__373c0__2Mge5").find("a").text.upper()
         self.name = self.fixUnicode(name)
-        self.location = self.card.find("address").find("span").text + " Pittsburgh, PA"
+        self.location = self.card.find("address").find("span").text + ", Pittsburgh, PA"
         tags = self.card.find_all("span", class_="lemon--span__373c0__3997G text" +\
             "__373c0__2Kxyz text-color--black-extra-light__373c0__2OyzO text-align" +\
             "--left__373c0__2XGa-")
