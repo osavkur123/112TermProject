@@ -1,5 +1,39 @@
 <?xml version="1.0" encoding = "UTF-8"?>
 <users>
+<user username="other" password="83473832557">
+	<review restaurant="THE UNDERGROUND">
+		<rating>7</rating>
+		<comment>No Comment</comment>
+	</review>
+	<review restaurant="INOODLE">
+		<rating>5</rating>
+		<comment>No Comment</comment>
+	</review>
+	<review restaurant="THE EXCHANGE">
+		<rating>9</rating>
+		<comment>Fairly good</comment>
+	</review>
+	<review restaurant="AU BON PAIN AT SKIBO CAFE">
+		<rating>6</rating>
+		<comment>Good</comment>
+	</review>
+	<review restaurant="FOOD FOR THOUGHT DELI">
+		<rating>6</rating>
+		<comment>come</comment>
+	</review>
+	<review restaurant="BACK BAR GRILL">
+		<rating>5</rating>
+		<comment>okay</comment>
+	</review>
+	<review restaurant="NOURISH">
+		<rating>7</rating>
+		<comment>good</comment>
+	</review>
+	<review restaurant="CUCINA">
+		<rating>5</rating>
+		<comment>okay</comment>
+	</review>
+</user>
 <user username="kj" password="1674244">
 	<review restaurant="EL GALLO DE ORO">
 		<rating>1</rating>
@@ -34,40 +68,6 @@
 		<comment>gud</comment>
 	</review>
 	<review restaurant="CARNEGIE MELLON CAFE">
-		<rating>5</rating>
-		<comment>okay</comment>
-	</review>
-</user>
-<user username="other" password="83473832557">
-	<review restaurant="THE UNDERGROUND">
-		<rating>7</rating>
-		<comment>No Comment</comment>
-	</review>
-	<review restaurant="INOODLE">
-		<rating>5</rating>
-		<comment>No Comment</comment>
-	</review>
-	<review restaurant="THE EXCHANGE">
-		<rating>9</rating>
-		<comment>Fairly good</comment>
-	</review>
-	<review restaurant="AU BON PAIN AT SKIBO CAFE">
-		<rating>6</rating>
-		<comment>Good</comment>
-	</review>
-	<review restaurant="FOOD FOR THOUGHT DELI">
-		<rating>6</rating>
-		<comment>come</comment>
-	</review>
-	<review restaurant="BACK BAR GRILL">
-		<rating>5</rating>
-		<comment>okay</comment>
-	</review>
-	<review restaurant="NOURISH">
-		<rating>7</rating>
-		<comment>good</comment>
-	</review>
-	<review restaurant="CUCINA">
 		<rating>5</rating>
 		<comment>okay</comment>
 	</review>

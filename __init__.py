@@ -331,7 +331,8 @@ class HomeScreen(Mode):
         # Creating all the Yelp Restaurant objects
         if parser is None or len(parser.find_all("li",\
             class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")) == 0:
-             with open("yelpCache.html", "rb") as f:
+            # CITATION: Saving Yelp's webpage just in case it can't be loaded
+            with open("yelpCache.html", "rb") as f:
                 parser = restaurant.BeautifulSoup(f.read(), "html.parser")
         cards = parser.find_all("li",\
             class_="lemon--li__373c0__1r9wz border-color--default__373c0__3-ifU")
