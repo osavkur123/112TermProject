@@ -409,6 +409,7 @@ class HomeScreen(Mode):
                     username = self.getUserInput("What is your username?")
                     password = userData.passwordHash(self.getUserInput("What is your password?"))
                     self.user = userData.login(username, password)
+                    self.otherUsers = self.user.getOtherUsers()
                 elif self.margin + self.topHeight / 2 + self.margin / 4 <=\
                     event.y <= self.margin + self.topHeight:
                     if len(self.searchResults) == 0 and len(self.recommendations) == 0:
@@ -422,6 +423,7 @@ class HomeScreen(Mode):
                 if self.margin <= event.y <= self.margin + self.topHeight / 2 - self.margin/4:
                     # Logout
                     self.user = self.user.logout()
+                    self.otherUsers = []
                     self.resetSearchAndRecommendations()
                 elif self.margin + self.topHeight / 2 + self.margin / 4 <= event.y <=\
                     self.margin + self.topHeight:
