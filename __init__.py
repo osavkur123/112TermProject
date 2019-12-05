@@ -151,46 +151,59 @@ class RestaurantScreen(Mode):
         toDisplayLst.sort(key=lambda user:user.username)
         toDisplayStr = self.evenlySpaceRatings(toDisplayLst)
         canvas.create_text(self.width/2, self.height*5/8, text=toDisplayStr, font="Times 12", fill="white")
-   
+    
+    # Draws the rating and comment boxes
+    def drawRatingAndCommentBoxes(self, canvas):
+        canvas.create_rectangle(*self.ratingButton, outline="white")
+        if self.rating == "" or self.rating is None:
+            canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
+                (self.ratingButton[1]+self.ratingButton[3])/2, text="RATE", font="Times", fill="white")
+        elif not self.rating.isdigit():
+            canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
+                (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER AN INTEGER", font="Times", fill="white")
+        elif not 1 <= int(self.rating) <= 10:
+            canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
+                (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER BETWEEN 1 AND 10", font="Times", fill="white")
+        else:
+            canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
+                (self.ratingButton[1]+self.ratingButton[3])/2, text=f"RATING: {self.rating}", font="Times", fill="white")
+        canvas.create_rectangle(*self.commentButton, outline="white")
+        if self.comment == "" or self.comment is None:
+            canvas.create_text((self.commentButton[0]+self.commentButton[2])/2,\
+                (self.commentButton[1]+self.commentButton[3])/2, text="COMMENT", font="Times", fill="white")
+        else:
+            canvas.create_text((self.commentButton[0]+self.commentButton[2])/2,\
+                (self.commentButton[1]+self.commentButton[3])/2, text=f"COMMENT: {self.comment}", font="Times", fill="white")
+
     # Draw the buttons and the restaurant name and description
     def redrawAll(self, canvas):
+        # Background
         img = self.restaurant.image
         imgWidth, imgHeight = img.size
         scale = max(self.width/imgWidth, self.height/imgHeight)
         img = img.resize((int(imgWidth * scale), int(imgHeight * scale)))
         img = ImageEnhance.Brightness(img).enhance(0.5)
         canvas.create_image(self.width/2, self.height/2, image=ImageTk.PhotoImage(img))
+
+        # Exit button
         canvas.create_rectangle(*self.exitButton, outline="white")
         canvas.create_text((self.exitButton[0]+self.exitButton[2])/2,\
             (self.exitButton[1]+self.exitButton[3])/2, text="EXIT", font="Times", fill="white")
+        
+        # Restaurant Info
         canvas.create_text(self.width/2, self.app.height/4,\
             text=self.restaurant.name, font="Times", fill="white")
+        canvas.create_text(self.width/2, self.app.height*3/8,\
+            text=self.restaurant.location, font="Times", fill="white")
         canvas.create_text(self.width/2, self.app.height/2,\
             text=self.restaurant.description, font="Times 10", fill="white")
+
+        # Draw user information
         if self.mainApp.user is not None:
             canvas.create_text(self.width/2, self.app.height/10,\
                 text="Welcome " + self.mainApp.user.username, font="Times", fill="white")
             self.drawOtherUsersRatings(canvas)
-            canvas.create_rectangle(*self.ratingButton, outline="white")
-            if self.rating == "" or self.rating is None:
-                canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text="RATE", font="Times", fill="white")
-            elif not self.rating.isdigit():
-                canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER AN INTEGER", font="Times", fill="white")
-            elif not 1 <= int(self.rating) <= 10:
-                canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text="PLEASE ENTER A NUMBER BETWEEN 1 AND 10", font="Times", fill="white")
-            else:
-                canvas.create_text((self.ratingButton[0]+self.ratingButton[2])/2,\
-                    (self.ratingButton[1]+self.ratingButton[3])/2, text=f"RATING: {self.rating}", font="Times", fill="white")
-            canvas.create_rectangle(*self.commentButton, outline="white")
-            if self.comment == "" or self.comment is None:
-                canvas.create_text((self.commentButton[0]+self.commentButton[2])/2,\
-                    (self.commentButton[1]+self.commentButton[3])/2, text="COMMENT", font="Times", fill="white")
-            else:
-                canvas.create_text((self.commentButton[0]+self.commentButton[2])/2,\
-                    (self.commentButton[1]+self.commentButton[3])/2, text=f"COMMENT: {self.comment}", font="Times", fill="white")
+            self.drawRatingAndCommentBoxes(canvas)
         else:
             canvas.create_text(self.width/2, self.app.height/10,\
                 text=f"Sign In to see ratings and rate {self.restaurant.name}", font="Times", fill="white")
